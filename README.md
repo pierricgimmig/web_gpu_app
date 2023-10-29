@@ -9,8 +9,9 @@ Based off https://github.com/beaufortfrancois/webgpu-cross-platform-app.
 
 ```sh
 # Clone repository and initialize submodules.
-git clone --recurse-submodules https://github.com/pierricgimmig/web_gpu_app.git
+git clone https://github.com/pierricgimmig/web_gpu_app.git
 cd web_gpu_app/
+git submodule update --init --recursive --progress
 ```
 
 ## Requirements
