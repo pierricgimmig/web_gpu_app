@@ -1,0 +1,9 @@
+[submodule "dawn"]
+	path = dawn
+	url = https://dawn.googlesource.com/dawn
+	branch = main
+
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = master
