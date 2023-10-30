@@ -1,4 +1,5 @@
 #include "web_gpu_app.h"
+#include "imgui/imgui.h"
 
 #include <GLFW/glfw3.h>
 
