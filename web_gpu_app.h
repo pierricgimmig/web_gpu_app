@@ -7,6 +7,7 @@ namespace web_gpu_app {
 class App {
  public:
   App();
+  virtual ~App();
 
  protected:
   void GetDevice();
