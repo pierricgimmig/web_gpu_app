@@ -22,7 +22,7 @@ git submodule update --init --recursive --progress
 
 ```sh
 # Build the app with CMake.
-cmake -B build && cmake --build build -j4
+cmake -DCMAKE_BUILD_TYPE=Debug . -B build && cmake --build build -j4
 
 # Run the app.
 ./build/app

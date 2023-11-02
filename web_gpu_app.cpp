@@ -74,6 +74,13 @@ void UpdateGui(wgpu::RenderPassEncoder renderPass) {
 
 void OnDeviceError(WGPUErrorType type, const char* message, void* userdata) {
     std::cout << "Dawn error: " << message << std::endl;
+    exit(0);
+}
+
+void OnDeviceLost(WGPUDeviceLostReason reason, char const * message, void * userdata) {
+  std::cout << "Dawn device lost: " << message << std::endl;
+  std::cout << "Reason: " << reason << std::endl;
+  std::cout << "Device: " << userdata << std::endl;
 }
 
 }  // namespace
@@ -107,7 +114,7 @@ App::App() : width_(kDefaultWidth), height_(kDefaultHeight) {
 }
 
 App::~App() {
-
+  TerminateGui();
 }
 
 void App::GetDevice() {
@@ -135,6 +142,7 @@ void App::GetDevice() {
 void App::OnDevice(wgpu::Device device) {
   device_ = device;
   device.SetUncapturedErrorCallback(OnDeviceError, nullptr);
+  device.SetDeviceLostCallback(OnDeviceLost, device.Get());
 }
 
 void App::SetupSwapChain(wgpu::Surface surface) {
@@ -144,6 +152,39 @@ void App::SetupSwapChain(wgpu::Surface surface) {
                                    .height = height_,
                                    .presentMode = wgpu::PresentMode::Fifo};
   swap_chain_ = device_.CreateSwapChain(surface, &scDesc);
+}
+
+bool App::InitDepthBuffer() {
+	// Get the current size of the window's framebuffer:
+	int width, height;
+	glfwGetFramebufferSize(window_, &width, &height);
+
+	// Create the depth texture
+	wgpu::TextureDescriptor depthTextureDesc;
+	depthTextureDesc.dimension = wgpu::TextureDimension::e2D;
+	depthTextureDesc.format = depth_texture_format_;
+	depthTextureDesc.mipLevelCount = 1;
+	depthTextureDesc.sampleCount = 1;
+	depthTextureDesc.size = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
+	depthTextureDesc.usage = wgpu::TextureUsage::RenderAttachment;
+	depthTextureDesc.viewFormatCount = 1;
+	depthTextureDesc.viewFormats = &depth_texture_format_;
+	depth_texture_ = device_.CreateTexture(&depthTextureDesc);
+	std::cout << "Depth texture: " << depth_texture_.Get() << std::endl;
+
+	// Create the view of the depth texture manipulated by the rasterizer
+	wgpu::TextureViewDescriptor depthTextureViewDesc;
+	depthTextureViewDesc.aspect = wgpu::TextureAspect::DepthOnly;
+	depthTextureViewDesc.baseArrayLayer = 0;
+	depthTextureViewDesc.arrayLayerCount = 1;
+	depthTextureViewDesc.baseMipLevel = 0;
+	depthTextureViewDesc.mipLevelCount = 1;
+	depthTextureViewDesc.dimension = wgpu::TextureViewDimension::e2D;
+	depthTextureViewDesc.format = depth_texture_format_;
+	depth_texture_view_ = depth_texture_.CreateView(&depthTextureViewDesc);
+	std::cout << "Depth texture view: " << depth_texture_view_.Get() << std::endl;
+
+	return depth_texture_view_ != nullptr;
 }
 
 void App::CreateRenderPipeline() {
@@ -171,9 +212,9 @@ void App::MainLoop() {
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  GLFWwindow* window = glfwCreateWindow(width_, height_, "WebGPU window", nullptr, nullptr);
+  window_ = glfwCreateWindow(width_, height_, "WebGPU window", nullptr, nullptr);
 
-  if(!InitGui(window, device_)){
+  if(!InitGui(window_, device_)){
     std::cout << "Failed to initialize Dear ImGui!" << std::endl;
   }
 
@@ -184,16 +225,17 @@ void App::MainLoop() {
   wgpu::SurfaceDescriptor surfaceDesc{.nextInChain = &canvasDesc};
   wgpu::Surface surface = instance.CreateSurface(&surfaceDesc);
 #else
-  wgpu::Surface surface = wgpu::glfw::CreateSurfaceForWindow(instance_, window);
+  wgpu::Surface surface = wgpu::glfw::CreateSurfaceForWindow(instance_, window_);
 #endif
 
   SetupSwapChain(surface);
+  InitDepthBuffer();
   CreateRenderPipeline();
 
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(reinterpret_cast<void*>(this), EmscriptenMainLoop, 0, false);
 #else
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window_)) {
     glfwPollEvents();
     Render();
     swap_chain_.Present();
@@ -206,7 +248,25 @@ void App::Render() {
                                              .loadOp = wgpu::LoadOp::Clear,
                                              .storeOp = wgpu::StoreOp::Store};
 
-  wgpu::RenderPassDescriptor renderpass{.colorAttachmentCount = 1, .colorAttachments = &attachment};
+  wgpu::RenderPassDepthStencilAttachment depthStencilAttachment;
+	depthStencilAttachment.view = depth_texture_view_;
+	depthStencilAttachment.depthClearValue = 1.0f;
+	depthStencilAttachment.depthLoadOp = wgpu::LoadOp::Clear;
+	depthStencilAttachment.depthStoreOp = wgpu::StoreOp::Store;
+	depthStencilAttachment.depthReadOnly = false;
+	depthStencilAttachment.stencilClearValue = 0;
+#ifdef WEBGPU_BACKEND_WGPU
+	depthStencilAttachment.stencilLoadOp = wgpu::LoadOp::Clear;
+	depthStencilAttachment.stencilStoreOp = wgpu::StoreOp::Store;
+#else
+	depthStencilAttachment.stencilLoadOp = wgpu::LoadOp::Undefined;
+	depthStencilAttachment.stencilStoreOp = wgpu::StoreOp::Undefined;
+#endif
+	depthStencilAttachment.stencilReadOnly = true;
+
+        wgpu::RenderPassDescriptor renderpass{.colorAttachmentCount = 1,
+                                              .colorAttachments = &attachment,
+                                              .depthStencilAttachment = &depthStencilAttachment};
 
   wgpu::CommandEncoder encoder = device_.CreateCommandEncoder();
   wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
@@ -216,6 +276,7 @@ void App::Render() {
   pass.End();
   wgpu::CommandBuffer commands = encoder.Finish();
   device_.GetQueue().Submit(1, &commands);
+  device_.Tick();
 }
 
 }  // namespace web_gpu_app
