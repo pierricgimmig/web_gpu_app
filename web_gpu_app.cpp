@@ -22,7 +22,7 @@ bool InitGui(GLFWwindow* window, wgpu::Device device) {
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOther(window, true);
-	ImGui_ImplWGPU_Init(device.Get(), 3, WGPUTextureFormat_BGRA8Unorm, WGPUTextureFormat_BGRA8Unorm);
+	ImGui_ImplWGPU_Init(device.Get(), 3, WGPUTextureFormat_BGRA8Unorm, WGPUTextureFormat_Depth24Plus);
 	return true;
 }
 
@@ -94,7 +94,7 @@ void EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
 }  // namespace
 
 static constexpr uint32_t kDefaultWidth = 3024;
-static constexpr uint32_t kDefaultHeight = 1702;
+static constexpr uint32_t kDefaultHeight = 1708;
 
 const char shaderCode[] = R"(
     @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
@@ -146,12 +146,12 @@ void App::OnDevice(wgpu::Device device) {
 }
 
 void App::SetupSwapChain(wgpu::Surface surface) {
-  wgpu::SwapChainDescriptor scDesc{.usage = wgpu::TextureUsage::RenderAttachment,
+  wgpu::SwapChainDescriptor descriptor{.usage = wgpu::TextureUsage::RenderAttachment,
                                    .format = wgpu::TextureFormat::BGRA8Unorm,
                                    .width = width_,
                                    .height = height_,
                                    .presentMode = wgpu::PresentMode::Fifo};
-  swap_chain_ = device_.CreateSwapChain(surface, &scDesc);
+  swap_chain_ = device_.CreateSwapChain(surface, &descriptor);
 }
 
 bool App::InitDepthBuffer() {
@@ -201,8 +201,21 @@ void App::CreateRenderPipeline() {
                                     .targetCount = 1,
                                     .targets = &color_target_state};
 
+  wgpu::DepthStencilState depth_stencil_state;
+	depth_stencil_state.depthCompare = wgpu::CompareFunction::Less;
+	depth_stencil_state.depthWriteEnabled = true;
+	depth_stencil_state.format = wgpu::TextureFormat::Depth24Plus;
+	depth_stencil_state.stencilReadMask = 0;
+	depth_stencil_state.stencilWriteMask = 0;
+
   wgpu::RenderPipelineDescriptor descriptor{
       .vertex = {.module = shader_module, .entryPoint = "vertexMain"}, .fragment = &fragmentState};
+
+  descriptor.depthStencil = &depth_stencil_state;
+	descriptor.multisample.count = 1;
+	descriptor.multisample.mask = ~0u;
+	descriptor.multisample.alphaToCoverageEnabled = false;
+
   pipeline_ = device_.CreateRenderPipeline(&descriptor);
 }
 
