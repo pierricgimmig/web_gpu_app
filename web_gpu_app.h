@@ -21,8 +21,21 @@ class App {
   void Render();
   virtual std::string_view GetName() { return "App"; };
 
+  void OnResize(int width, int height);
+  void OnMouseMove(double xpos, double ypos);
+	void OnMouseButton(int button, int action, int mods);
+	void OnScroll(double xoffset, double yoffset);
+
+  // Glfw.
+  void InitGlfw();
+  static void OnGlfwResize(GLFWwindow* window, int width, int height);
+  static void OnGlfwSetCursorPos(GLFWwindow* window, double xpos, double ypos);
+  static void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods);
+  static void OnGlfwScroll(GLFWwindow* window, double xoffset, double yoffset);
+
   wgpu::Instance instance_;
   wgpu::Device device_;
+  wgpu::Surface surface_;
   wgpu::SwapChain swap_chain_;
   wgpu::RenderPipeline pipeline_;
 
@@ -32,8 +45,8 @@ class App {
 	wgpu::TextureView depth_texture_view_ = nullptr;
 
   GLFWwindow* window_ = nullptr;
-  uint32_t width_ = 0;
-  uint32_t height_ = 0;
+  int width_ = 0;
+  int height_ = 0;
 };
 
 }  // namespace web_gpu_app
