@@ -14,6 +14,8 @@
 #include <webgpu/webgpu_glfw.h>
 #endif
 
+#define TRACE_VAR(x) std::cout << #x << ": " << x << std::endl;
+
 namespace {
 
 void SetGuiTheme() {
@@ -239,9 +241,6 @@ void EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
 #endif
 }  // namespace
 
-static constexpr uint32_t kDefaultWidth = 600;
-static constexpr uint32_t kDefaultHeight = 400;
-
 const char shaderCode[] = R"(
     @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
       @builtin(position) vec4f {
@@ -310,7 +309,6 @@ bool App::InitDepthBuffer() {
   depthTextureDesc.viewFormatCount = 1;
   depthTextureDesc.viewFormats = &depth_texture_format_;
   depth_texture_ = device_.CreateTexture(&depthTextureDesc);
-  std::cout << "Depth texture: " << depth_texture_.Get() << std::endl;
 
   // Create the view of the depth texture manipulated by the rasterizer
   wgpu::TextureViewDescriptor depthTextureViewDesc;
@@ -322,8 +320,6 @@ bool App::InitDepthBuffer() {
   depthTextureViewDesc.dimension = wgpu::TextureViewDimension::e2D;
   depthTextureViewDesc.format = depth_texture_format_;
   depth_texture_view_ = depth_texture_.CreateView(&depthTextureViewDesc);
-  std::cout << "Depth texture view: " << depth_texture_view_.Get() << std::endl;
-
   return depth_texture_view_ != nullptr;
 }
 
@@ -453,7 +449,9 @@ void App::InitGlfw() {
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window_ = glfwCreateWindow(kDefaultWidth, kDefaultHeight, "WebGPU window", nullptr, nullptr);
+  static constexpr uint32_t kInitialWidth = 600;
+  static constexpr uint32_t kInitialHeight = 400;
+  window_ = glfwCreateWindow(kInitialWidth, kInitialHeight, "WebGPU window", nullptr, nullptr);
   glfwGetFramebufferSize(window_, &width_, &height_);
 
   // Setup callbacks.
@@ -464,14 +462,22 @@ void App::InitGlfw() {
   glfwSetScrollCallback(window_, OnGlfwScroll);
 }
 
-void App::OnResize(int , int) {
-	glfwGetFramebufferSize(window_, &width_, &height_);
+void App::OnResize(int width, int height) {
+  width_ = width;
+  height_ = height;
   SetupSwapChain(surface_);
   InitDepthBuffer();
 }
 
 void App::OnMouseMove(double xpos, double ypos){}
-void App::OnMouseButton(int button, int action, int mods){}
-void App::OnScroll(double xoffset, double yoffset){}
+void App::OnMouseButton(int button, int action, int mods){
+  TRACE_VAR(button);
+  TRACE_VAR(action);
+  TRACE_VAR(mods);
+}
+void App::OnScroll(double xoffset, double yoffset){
+  TRACE_VAR(xoffset);
+  TRACE_VAR(yoffset);
+}
 
 }  // namespace web_gpu_app
