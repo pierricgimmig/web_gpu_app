@@ -80,15 +80,13 @@ void OnDeviceLost(WGPUDeviceLostReason reason, char const* message, void* userda
   std::cout << "Device: " << userdata << std::endl;
 }
 
-}  // namespace
-
-namespace web_gpu_app {
-
-namespace {
 #if defined(__EMSCRIPTEN__)
 void EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
 #endif
+
 }  // namespace
+
+namespace web_gpu_app {
 
 const char shaderCode[] = R"(
     @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
@@ -140,7 +138,7 @@ void App::SetupDevice() {
       reinterpret_cast<void*>(this));
 }
 
-void App::SetupSurface(){ 
+void App::SetupSurface() {
 #if defined(__EMSCRIPTEN__)
   wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
   canvasDesc.selector = "#canvas";
@@ -310,7 +308,8 @@ void App::SetupUi() {
   ImGui::CreateContext();
   ImGui::GetIO();
   ImGui_ImplGlfw_InitForOther(window_, true);
-  ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm, WGPUTextureFormat_Depth24Plus);
+  ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm,
+                      WGPUTextureFormat_Depth24Plus);
   SetUiThemeDark();
 }
 
