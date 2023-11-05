@@ -6,7 +6,7 @@
 
 #include "imgui/backends/imgui_impl_glfw.h"
 #include "imgui/backends/imgui_impl_wgpu.h"
-#include "imgui/imgui.h"
+#include "ui_themes.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
@@ -17,157 +17,6 @@
 #define TRACE_VAR(x) std::cout << #x << ": " << x << std::endl;
 
 namespace {
-
-void SetGuiTheme() {
-  ImGuiStyle& style = ImGui::GetStyle();
-  style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-  style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-  style.Colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-  style.Colors[ImGuiCol_ChildBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-  style.Colors[ImGuiCol_PopupBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-  style.Colors[ImGuiCol_Border] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
-  style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  style.Colors[ImGuiCol_FrameBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-  style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
-  style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
-  style.Colors[ImGuiCol_TitleBg] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
-  style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
-  style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-  style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-  style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
-  style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-  style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-  style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
-  style.Colors[ImGuiCol_CheckMark] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
-  style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
-  style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.08f, 0.50f, 0.72f, 1.00f);
-  style.Colors[ImGuiCol_Button] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-  style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
-  style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
-  style.Colors[ImGuiCol_Header] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-  style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-  style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.67f, 0.67f, 0.67f, 0.39f);
-  style.Colors[ImGuiCol_Separator] = style.Colors[ImGuiCol_Border];
-  style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.41f, 0.42f, 0.44f, 1.00f);
-  style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-  style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.29f, 0.30f, 0.31f, 0.67f);
-  style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-  style.Colors[ImGuiCol_Tab] = ImVec4(0.08f, 0.08f, 0.09f, 0.83f);
-  style.Colors[ImGuiCol_TabHovered] = ImVec4(0.33f, 0.34f, 0.36f, 0.83f);
-  style.Colors[ImGuiCol_TabActive] = ImVec4(0.23f, 0.23f, 0.24f, 1.00f);
-  style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
-  style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
-  // style.Colors[ImGuiCol_DockingPreview]        = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
-  // style.Colors[ImGuiCol_DockingEmptyBg]        = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-  style.Colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-  style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-  style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-  style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-  style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-  style.Colors[ImGuiCol_DragDropTarget] = ImVec4(0.11f, 0.64f, 0.92f, 1.00f);
-  style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-  style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-  style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-  style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-  style.GrabRounding = style.FrameRounding = 2.3f;
-}
-
-void embraceTheDarkness() {
-  ImVec4* colors = ImGui::GetStyle().Colors;
-  colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-  colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-  colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-  colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
-  colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
-  colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
-  colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-  colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-  colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-  colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
-  colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-  colors[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-  colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-  colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
-  colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-  colors[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-  colors[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
-  colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
-  colors[ImGuiCol_Button] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
-  colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
-  colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-  colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-  colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
-  colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
-  colors[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-  colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-  colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-  colors[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-  colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
-  colors[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
-  colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-  colors[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-  colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
-  colors[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-  // colors[ImGuiCol_DockingPreview]         = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-  // colors[ImGuiCol_DockingEmptyBg]         = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-  colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
-  colors[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-  colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-  colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-  colors[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
-  colors[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
-  colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
-  colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
-  colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
-  colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
-
-  ImGuiStyle& style = ImGui::GetStyle();
-  style.WindowPadding = ImVec2(8.00f, 8.00f);
-  style.FramePadding = ImVec2(5.00f, 2.00f);
-  style.CellPadding = ImVec2(6.00f, 6.00f);
-  style.ItemSpacing = ImVec2(6.00f, 6.00f);
-  style.ItemInnerSpacing = ImVec2(6.00f, 6.00f);
-  style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-  style.IndentSpacing = 25;
-  style.ScrollbarSize = 15;
-  style.GrabMinSize = 10;
-  style.WindowBorderSize = 1;
-  style.ChildBorderSize = 1;
-  style.PopupBorderSize = 1;
-  style.FrameBorderSize = 1;
-  style.TabBorderSize = 1;
-  style.WindowRounding = 7;
-  style.ChildRounding = 4;
-  style.FrameRounding = 3;
-  style.PopupRounding = 4;
-  style.ScrollbarRounding = 9;
-  style.GrabRounding = 3;
-  style.LogSliderDeadzone = 4;
-  style.TabRounding = 4;
-}
-
-bool InitGui(GLFWwindow* window, wgpu::Device device) {
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui::GetIO();
-  embraceTheDarkness();
-
-  // Setup Platform/Renderer backends
-  ImGui_ImplGlfw_InitForOther(window, true);
-  ImGui_ImplWGPU_Init(device.Get(), 3, WGPUTextureFormat_BGRA8Unorm, WGPUTextureFormat_Depth24Plus);
-  return true;
-}
 
 void TerminateGui() {
   ImGui_ImplGlfw_Shutdown();
@@ -253,14 +102,21 @@ const char shaderCode[] = R"(
 )";
 
 App::App() {
+  SetupGlfw();
   instance_ = wgpu::CreateInstance();
-  GetDevice();
+  SetupDevice();
+  SetupUi();
+  SetupSurface();
+  SetupSwapChain(surface_);
+  SetupDepthBuffer();
+  SetupRenderPipeline();
+
   MainLoop();
 }
 
 App::~App() { TerminateGui(); }
 
-void App::GetDevice() {
+void App::SetupDevice() {
   instance_.RequestAdapter(
       nullptr,
       [](WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char* message,
@@ -275,17 +131,24 @@ void App::GetDevice() {
                void* userdata) {
               wgpu::Device device = wgpu::Device::Acquire(cDevice);
               App* app = reinterpret_cast<App*>(userdata);
-              app->OnDevice(device);
+              app->device_ = device;
+              device.SetUncapturedErrorCallback(OnDeviceError, nullptr);
+              device.SetDeviceLostCallback(OnDeviceLost, device.Get());
             },
             userdata);
       },
       reinterpret_cast<void*>(this));
 }
 
-void App::OnDevice(wgpu::Device device) {
-  device_ = device;
-  device.SetUncapturedErrorCallback(OnDeviceError, nullptr);
-  device.SetDeviceLostCallback(OnDeviceLost, device.Get());
+void App::SetupSurface(){ 
+#if defined(__EMSCRIPTEN__)
+  wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
+  canvasDesc.selector = "#canvas";
+  wgpu::SurfaceDescriptor surfaceDesc{.nextInChain = &canvasDesc};
+  surface_ = instance.CreateSurface(&surfaceDesc);
+#else
+  surface_ = wgpu::glfw::CreateSurfaceForWindow(instance_, window_);
+#endif
 }
 
 void App::SetupSwapChain(wgpu::Surface surface) {
@@ -297,7 +160,7 @@ void App::SetupSwapChain(wgpu::Surface surface) {
   swap_chain_ = device_.CreateSwapChain(surface, &descriptor);
 }
 
-bool App::InitDepthBuffer() {
+bool App::SetupDepthBuffer() {
   // Create the depth texture
   wgpu::TextureDescriptor depthTextureDesc;
   depthTextureDesc.dimension = wgpu::TextureDimension::e2D;
@@ -323,7 +186,7 @@ bool App::InitDepthBuffer() {
   return depth_texture_view_ != nullptr;
 }
 
-void App::CreateRenderPipeline() {
+void App::SetupRenderPipeline() {
   wgpu::ShaderModuleWGSLDescriptor wgsl_descriptor{};
   wgsl_descriptor.code = shaderCode;
 
@@ -356,26 +219,6 @@ void App::CreateRenderPipeline() {
 }
 
 void App::MainLoop() {
-  InitGlfw();
-
-  if (!InitGui(window_, device_)) {
-    std::cout << "Failed to initialize Dear ImGui!" << std::endl;
-  }
-
-#if defined(__EMSCRIPTEN__)
-  wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
-  canvasDesc.selector = "#canvas";
-
-  wgpu::SurfaceDescriptor surfaceDesc{.nextInChain = &canvasDesc};
-  surface_ = instance.CreateSurface(&surfaceDesc);
-#else
-  surface_ = wgpu::glfw::CreateSurfaceForWindow(instance_, window_);
-#endif
-
-  SetupSwapChain(surface_);
-  InitDepthBuffer();
-  CreateRenderPipeline();
-
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(reinterpret_cast<void*>(this), EmscriptenMainLoop, 0, false);
 #else
@@ -443,7 +286,7 @@ void App::OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
   AppFromWindow(window)->OnScroll(x_offset, y_offset);
 }
 
-void App::InitGlfw() {
+void App::SetupGlfw() {
   if (!glfwInit()) {
     return;
   }
@@ -451,7 +294,7 @@ void App::InitGlfw() {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   static constexpr uint32_t kInitialWidth = 600;
   static constexpr uint32_t kInitialHeight = 400;
-  window_ = glfwCreateWindow(kInitialWidth, kInitialHeight, "WebGPU window", nullptr, nullptr);
+  window_ = glfwCreateWindow(kInitialWidth, kInitialHeight, GetAppName().c_str(), nullptr, nullptr);
   glfwGetFramebufferSize(window_, &width_, &height_);
 
   // Setup callbacks.
@@ -462,20 +305,29 @@ void App::InitGlfw() {
   glfwSetScrollCallback(window_, OnGlfwScroll);
 }
 
+void App::SetupUi() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui::GetIO();
+  ImGui_ImplGlfw_InitForOther(window_, true);
+  ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm, WGPUTextureFormat_Depth24Plus);
+  SetUiThemeDark();
+}
+
 void App::OnResize(int width, int height) {
   width_ = width;
   height_ = height;
   SetupSwapChain(surface_);
-  InitDepthBuffer();
+  SetupDepthBuffer();
 }
 
-void App::OnMouseMove(double xpos, double ypos){}
-void App::OnMouseButton(int button, int action, int mods){
+void App::OnMouseMove(double xpos, double ypos) {}
+void App::OnMouseButton(int button, int action, int mods) {
   TRACE_VAR(button);
   TRACE_VAR(action);
   TRACE_VAR(mods);
 }
-void App::OnScroll(double xoffset, double yoffset){
+void App::OnScroll(double xoffset, double yoffset) {
   TRACE_VAR(xoffset);
   TRACE_VAR(yoffset);
 }
