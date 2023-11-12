@@ -1,7 +1,7 @@
 #pragma once
 
 #include <webgpu/webgpu_cpp.h>
-#include "imgui/imgui.h"
+#include "imgui.h"
 
 #include <string>
 
