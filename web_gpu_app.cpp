@@ -6,15 +6,14 @@
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_wgpu.h"
-#include "ui_themes.h"
+#include "glm/glm.hpp"
+#include "utils.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
 #else
 #include <webgpu/webgpu_glfw.h>
 #endif
-
-#define TRACE_VAR(x) std::cout << #x << ": " << x << std::endl;
 
 namespace {
 

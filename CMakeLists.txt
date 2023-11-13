@@ -36,8 +36,6 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC third_party/imgui)
 target_link_libraries(imgui PUBLIC webgpu_cpp webgpu_glfw)
 
-
-
 if(EMSCRIPTEN)
   set_target_properties(app PROPERTIES SUFFIX ".html")
   target_link_options(app PRIVATE "-sUSE_WEBGPU=1" "-sUSE_GLFW=3")

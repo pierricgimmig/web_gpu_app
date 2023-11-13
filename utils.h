@@ -1,5 +1,8 @@
 #pragma once
 #include "imgui.h"
+#include <iostream>
+
+#define TRACE_VAR(x) std::cout << #x << ": " << x << std::endl;
 
 namespace web_gpu_app {
 
@@ -141,4 +144,4 @@ inline void SetUiThemeDarker() {
   style.TabRounding = 4;
 }
 
-}
+}  // web_gpu_app
