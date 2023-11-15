@@ -17,57 +17,6 @@
 
 namespace {
 
-void TerminateGui() {
-  ImGui_ImplGlfw_Shutdown();
-  ImGui_ImplWGPU_Shutdown();
-}
-
-void UpdateGui(wgpu::RenderPassEncoder renderPass) {
-  // Start the Dear ImGui frame
-  ImGui_ImplWGPU_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-
-  ImGui::ShowDemoWindow();
-  // Build our UI
-  {
-    static float f = 0.0f;
-    static int counter = 0;
-    static bool show_demo_window = true;
-    static bool show_another_window = true;
-    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
-
-    ImGui::Text(
-        "This is some useful text.");  // Display some text (you can use a format strings too)
-    ImGui::Checkbox("Demo Window",
-                    &show_demo_window);  // Edit bools storing our window open/close state
-    ImGui::Checkbox("Another Window", &show_another_window);
-
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-    ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats representing a color
-
-    if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return true when
-                                  // edited/activated)
-      counter++;
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
-                io.Framerate);
-    ImGui::End();
-  }
-
-  // Draw the UI
-  ImGui::EndFrame();
-  // Convert the UI defined above into low-level drawing commands
-  ImGui::Render();
-  // Execute the low-level drawing commands on the WebGPU backend
-  ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), renderPass.Get());
-}
-
 void OnDeviceError(WGPUErrorType type, const char* message, void* userdata) {
   std::cout << "Dawn error: " << message << std::endl;
   exit(0);
@@ -82,6 +31,10 @@ void OnDeviceLost(WGPUDeviceLostReason reason, char const* message, void* userda
 #if defined(__EMSCRIPTEN__)
 void EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
 #endif
+
+web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
+  return reinterpret_cast<web_gpu_app::App*>(glfwGetWindowUserPointer(window));
+}
 
 }  // namespace
 
@@ -99,96 +52,111 @@ const char shaderCode[] = R"(
 )";
 
 App::App() {
-  SetupGlfw();
+  // Glfw
+  window_ = SetupGlfwWindow(GetAppName().c_str(), this);
+  glfwGetFramebufferSize(window_, &width_, &height_);
+
+  // WebGpu
   instance_ = wgpu::CreateInstance();
-  SetupDevice();
+  device_ = SetupDevice(instance_);
+  surface_ = SetupSurface(instance_, window_);
+  swap_chain_ = SetupSwapChain(surface_, device_, width_, height_);
+  depth_texture_ = SetupDepthTexture(device_, depth_texture_format_, width_, height_);
+  depth_texture_view_ = SetupDepthTextureView(depth_texture_, depth_texture_format_);
+  render_pipeline_ = SetupRenderPipeline(device_, shaderCode);
+
+  // Imgui
   SetupUi();
-  SetupSurface();
-  SetupSwapChain(surface_);
-  SetupDepthBuffer();
-  SetupRenderPipeline();
 
   MainLoop();
 }
 
-App::~App() { TerminateGui(); }
+App::~App() {
+  ImGui_ImplGlfw_Shutdown();
+  ImGui_ImplWGPU_Shutdown();
+}
 
-void App::SetupDevice() {
-  instance_.RequestAdapter(
+wgpu::Device App::SetupDevice(const wgpu::Instance& instance) {
+  wgpu::Device result;
+  instance.RequestAdapter(
       nullptr,
-      [](WGPURequestAdapterStatus status, WGPUAdapter cAdapter, const char* message,
+      [](WGPURequestAdapterStatus status, WGPUAdapter c_adapter, const char* message,
          void* userdata) {
         if (status != WGPURequestAdapterStatus_Success) {
           exit(0);
         }
-        wgpu::Adapter adapter = wgpu::Adapter::Acquire(cAdapter);
+        wgpu::Adapter adapter = wgpu::Adapter::Acquire(c_adapter);
         adapter.RequestDevice(
             nullptr,
-            [](WGPURequestDeviceStatus status, WGPUDevice cDevice, const char* message,
+            [](WGPURequestDeviceStatus status, WGPUDevice c_device, const char* message,
                void* userdata) {
-              wgpu::Device device = wgpu::Device::Acquire(cDevice);
-              App* app = reinterpret_cast<App*>(userdata);
-              app->device_ = device;
-              device.SetUncapturedErrorCallback(OnDeviceError, nullptr);
-              device.SetDeviceLostCallback(OnDeviceLost, device.Get());
+              wgpu::Device* device = reinterpret_cast<wgpu::Device*>(userdata);
+              *device = wgpu::Device::Acquire(c_device);
+              device->SetUncapturedErrorCallback(OnDeviceError, nullptr);
+              device->SetDeviceLostCallback(OnDeviceLost, device->Get());
             },
             userdata);
       },
-      reinterpret_cast<void*>(this));
+      reinterpret_cast<void*>(&result));
+  return result;
 }
 
-void App::SetupSurface() {
+wgpu::Surface App::SetupSurface(const wgpu::Instance& instance, GLFWwindow* window) {
+  wgpu::Surface surface;
 #if defined(__EMSCRIPTEN__)
   wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
   canvasDesc.selector = "#canvas";
   wgpu::SurfaceDescriptor surfaceDesc{.nextInChain = &canvasDesc};
-  surface_ = instance.CreateSurface(&surfaceDesc);
+  surface = instance.CreateSurface(&surfaceDesc);
 #else
-  surface_ = wgpu::glfw::CreateSurfaceForWindow(instance_, window_);
+  surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
 #endif
+  return surface;
 }
 
-void App::SetupSwapChain(wgpu::Surface surface) {
+wgpu::SwapChain App::SetupSwapChain(wgpu::Surface surface, wgpu::Device device, uint32_t width,
+                                    uint32_t height) {
   wgpu::SwapChainDescriptor descriptor{.usage = wgpu::TextureUsage::RenderAttachment,
                                        .format = wgpu::TextureFormat::BGRA8Unorm,
-                                       .width = static_cast<uint32_t>(width_),
-                                       .height = static_cast<uint32_t>(height_),
+                                       .width = width,
+                                       .height = height,
                                        .presentMode = wgpu::PresentMode::Fifo};
-  swap_chain_ = device_.CreateSwapChain(surface, &descriptor);
+  return device.CreateSwapChain(surface, &descriptor);
 }
 
-bool App::SetupDepthBuffer() {
-  // Create the depth texture
+wgpu::Texture App::SetupDepthTexture(wgpu::Device device, wgpu::TextureFormat depth_texture_format,
+                                     uint32_t width, uint32_t height) {
   wgpu::TextureDescriptor depthTextureDesc;
   depthTextureDesc.dimension = wgpu::TextureDimension::e2D;
-  depthTextureDesc.format = depth_texture_format_;
+  depthTextureDesc.format = depth_texture_format;
   depthTextureDesc.mipLevelCount = 1;
   depthTextureDesc.sampleCount = 1;
-  depthTextureDesc.size = {static_cast<uint32_t>(width_), static_cast<uint32_t>(height_), 1};
+  depthTextureDesc.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
   depthTextureDesc.usage = wgpu::TextureUsage::RenderAttachment;
   depthTextureDesc.viewFormatCount = 1;
-  depthTextureDesc.viewFormats = &depth_texture_format_;
-  depth_texture_ = device_.CreateTexture(&depthTextureDesc);
-
-  // Create the view of the depth texture manipulated by the rasterizer
-  wgpu::TextureViewDescriptor depthTextureViewDesc;
-  depthTextureViewDesc.aspect = wgpu::TextureAspect::DepthOnly;
-  depthTextureViewDesc.baseArrayLayer = 0;
-  depthTextureViewDesc.arrayLayerCount = 1;
-  depthTextureViewDesc.baseMipLevel = 0;
-  depthTextureViewDesc.mipLevelCount = 1;
-  depthTextureViewDesc.dimension = wgpu::TextureViewDimension::e2D;
-  depthTextureViewDesc.format = depth_texture_format_;
-  depth_texture_view_ = depth_texture_.CreateView(&depthTextureViewDesc);
-  return depth_texture_view_ != nullptr;
+  depthTextureDesc.viewFormats = &depth_texture_format;
+  return device.CreateTexture(&depthTextureDesc);
 }
 
-void App::SetupRenderPipeline() {
+wgpu::TextureView App::SetupDepthTextureView(wgpu::Texture depth_texture,
+                                             wgpu::TextureFormat depth_texture_format) {
+  wgpu::TextureViewDescriptor depth_texture_view_descriptor;
+  depth_texture_view_descriptor.aspect = wgpu::TextureAspect::DepthOnly;
+  depth_texture_view_descriptor.baseArrayLayer = 0;
+  depth_texture_view_descriptor.arrayLayerCount = 1;
+  depth_texture_view_descriptor.baseMipLevel = 0;
+  depth_texture_view_descriptor.mipLevelCount = 1;
+  depth_texture_view_descriptor.dimension = wgpu::TextureViewDimension::e2D;
+  depth_texture_view_descriptor.format = depth_texture_format;
+  return depth_texture.CreateView(&depth_texture_view_descriptor);
+}
+
+wgpu::RenderPipeline App::SetupRenderPipeline(wgpu::Device device, const char* shader_code) {
   wgpu::ShaderModuleWGSLDescriptor wgsl_descriptor{};
-  wgsl_descriptor.code = shaderCode;
+  wgsl_descriptor.code = shader_code;
 
   wgpu::ShaderModuleDescriptor shader_module_descriptor{.nextInChain = &wgsl_descriptor};
-  wgpu::ShaderModule shader_module = device_.CreateShaderModule(&shader_module_descriptor);
+  wgpu::ShaderModule shader_module = device.CreateShaderModule(&shader_module_descriptor);
 
   wgpu::ColorTargetState color_target_state{.format = wgpu::TextureFormat::BGRA8Unorm};
 
@@ -212,7 +180,7 @@ void App::SetupRenderPipeline() {
   descriptor.multisample.mask = ~0u;
   descriptor.multisample.alphaToCoverageEnabled = false;
 
-  pipeline_ = device_.CreateRenderPipeline(&descriptor);
+  return device.CreateRenderPipeline(&descriptor);
 }
 
 void App::MainLoop() {
@@ -254,17 +222,25 @@ void App::Render() {
 
   wgpu::CommandEncoder encoder = device_.CreateCommandEncoder();
   wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
-  pass.SetPipeline(pipeline_);
+  pass.SetPipeline(render_pipeline_);
   pass.Draw(3);
-  UpdateGui(pass);
+  RenderUi(pass);
   pass.End();
   wgpu::CommandBuffer commands = encoder.Finish();
   device_.GetQueue().Submit(1, &commands);
   device_.Tick();
 }
 
-inline App* AppFromWindow(GLFWwindow* window) {
-  return reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+void App::RenderUi(wgpu::RenderPassEncoder render_pass) {
+  ImGui_ImplWGPU_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+
+  ImGui::ShowDemoWindow();
+
+  ImGui::EndFrame();
+  ImGui::Render();
+  ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), render_pass.Get());
 }
 
 void App::OnGlfwResize(GLFWwindow* window, int width, int height) {
@@ -283,23 +259,24 @@ void App::OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
   AppFromWindow(window)->OnScroll(x_offset, y_offset);
 }
 
-void App::SetupGlfw() {
+GLFWwindow* App::SetupGlfwWindow(const char* title, void* user_pointer) {
   if (!glfwInit()) {
-    return;
+    return nullptr;
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   static constexpr uint32_t kInitialWidth = 600;
   static constexpr uint32_t kInitialHeight = 400;
-  window_ = glfwCreateWindow(kInitialWidth, kInitialHeight, GetAppName().c_str(), nullptr, nullptr);
-  glfwGetFramebufferSize(window_, &width_, &height_);
+  GLFWwindow* window = glfwCreateWindow(kInitialWidth, kInitialHeight, title,
+                                        /*monitor*/ nullptr, /*share*/ nullptr);
 
   // Setup callbacks.
-  glfwSetWindowUserPointer(window_, this);
-  glfwSetFramebufferSizeCallback(window_, &OnGlfwResize);
-  glfwSetCursorPosCallback(window_, &OnGlfwSetCursorPos);
-  glfwSetMouseButtonCallback(window_, &OnGlfwSetMouseButton);
-  glfwSetScrollCallback(window_, OnGlfwScroll);
+  glfwSetWindowUserPointer(window, user_pointer);
+  glfwSetFramebufferSizeCallback(window, &OnGlfwResize);
+  glfwSetCursorPosCallback(window, &OnGlfwSetCursorPos);
+  glfwSetMouseButtonCallback(window, &OnGlfwSetMouseButton);
+  glfwSetScrollCallback(window, OnGlfwScroll);
+  return window;
 }
 
 void App::SetupUi() {
@@ -315,8 +292,9 @@ void App::SetupUi() {
 void App::OnResize(int width, int height) {
   width_ = width;
   height_ = height;
-  SetupSwapChain(surface_);
-  SetupDepthBuffer();
+  swap_chain_ = SetupSwapChain(surface_, device_, width_, height_);
+  depth_texture_ = SetupDepthTexture(device_, depth_texture_format_, width_, height_);
+  depth_texture_view_ = SetupDepthTextureView(depth_texture_, depth_texture_format_);
 }
 
 void App::OnMouseMove(double xpos, double ypos) {}
