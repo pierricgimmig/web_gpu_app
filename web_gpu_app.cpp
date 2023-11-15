@@ -36,11 +36,11 @@ web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
   return reinterpret_cast<web_gpu_app::App*>(glfwGetWindowUserPointer(window));
 }
 
-}  // namespace
+}  // OnGlfwResize
 
 namespace web_gpu_app {
 
-const char shaderCode[] = R"(
+const char simple_shader_code[] = R"(
     @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
       @builtin(position) vec4f {
         const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
@@ -52,135 +52,14 @@ const char shaderCode[] = R"(
 )";
 
 App::App() {
-  // Glfw
-  window_ = SetupGlfwWindow(GetAppName().c_str(), this);
-  glfwGetFramebufferSize(window_, &width_, &height_);
-
-  // WebGpu
-  instance_ = wgpu::CreateInstance();
-  device_ = SetupDevice(instance_);
-  surface_ = SetupSurface(instance_, window_);
-  swap_chain_ = SetupSwapChain(surface_, device_, width_, height_);
-  depth_texture_ = SetupDepthTexture(device_, depth_texture_format_, width_, height_);
-  depth_texture_view_ = SetupDepthTextureView(depth_texture_, depth_texture_format_);
-  render_pipeline_ = SetupRenderPipeline(device_, shaderCode);
-
   // Imgui
   SetupUi();
-
   MainLoop();
 }
 
 App::~App() {
   ImGui_ImplGlfw_Shutdown();
   ImGui_ImplWGPU_Shutdown();
-}
-
-wgpu::Device App::SetupDevice(const wgpu::Instance& instance) {
-  wgpu::Device result;
-  instance.RequestAdapter(
-      nullptr,
-      [](WGPURequestAdapterStatus status, WGPUAdapter c_adapter, const char* message,
-         void* userdata) {
-        if (status != WGPURequestAdapterStatus_Success) {
-          exit(0);
-        }
-        wgpu::Adapter adapter = wgpu::Adapter::Acquire(c_adapter);
-        adapter.RequestDevice(
-            nullptr,
-            [](WGPURequestDeviceStatus status, WGPUDevice c_device, const char* message,
-               void* userdata) {
-              wgpu::Device* device = reinterpret_cast<wgpu::Device*>(userdata);
-              *device = wgpu::Device::Acquire(c_device);
-              device->SetUncapturedErrorCallback(OnDeviceError, nullptr);
-              device->SetDeviceLostCallback(OnDeviceLost, device->Get());
-            },
-            userdata);
-      },
-      reinterpret_cast<void*>(&result));
-  return result;
-}
-
-wgpu::Surface App::SetupSurface(const wgpu::Instance& instance, GLFWwindow* window) {
-  wgpu::Surface surface;
-#if defined(__EMSCRIPTEN__)
-  wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
-  canvasDesc.selector = "#canvas";
-  wgpu::SurfaceDescriptor surfaceDesc{.nextInChain = &canvasDesc};
-  surface = instance.CreateSurface(&surfaceDesc);
-#else
-  surface = wgpu::glfw::CreateSurfaceForWindow(instance, window);
-#endif
-  return surface;
-}
-
-wgpu::SwapChain App::SetupSwapChain(wgpu::Surface surface, wgpu::Device device, uint32_t width,
-                                    uint32_t height) {
-  wgpu::SwapChainDescriptor descriptor{.usage = wgpu::TextureUsage::RenderAttachment,
-                                       .format = wgpu::TextureFormat::BGRA8Unorm,
-                                       .width = width,
-                                       .height = height,
-                                       .presentMode = wgpu::PresentMode::Fifo};
-  return device.CreateSwapChain(surface, &descriptor);
-}
-
-wgpu::Texture App::SetupDepthTexture(wgpu::Device device, wgpu::TextureFormat depth_texture_format,
-                                     uint32_t width, uint32_t height) {
-  wgpu::TextureDescriptor depthTextureDesc;
-  depthTextureDesc.dimension = wgpu::TextureDimension::e2D;
-  depthTextureDesc.format = depth_texture_format;
-  depthTextureDesc.mipLevelCount = 1;
-  depthTextureDesc.sampleCount = 1;
-  depthTextureDesc.size = {static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1};
-  depthTextureDesc.usage = wgpu::TextureUsage::RenderAttachment;
-  depthTextureDesc.viewFormatCount = 1;
-  depthTextureDesc.viewFormats = &depth_texture_format;
-  return device.CreateTexture(&depthTextureDesc);
-}
-
-wgpu::TextureView App::SetupDepthTextureView(wgpu::Texture depth_texture,
-                                             wgpu::TextureFormat depth_texture_format) {
-  wgpu::TextureViewDescriptor depth_texture_view_descriptor;
-  depth_texture_view_descriptor.aspect = wgpu::TextureAspect::DepthOnly;
-  depth_texture_view_descriptor.baseArrayLayer = 0;
-  depth_texture_view_descriptor.arrayLayerCount = 1;
-  depth_texture_view_descriptor.baseMipLevel = 0;
-  depth_texture_view_descriptor.mipLevelCount = 1;
-  depth_texture_view_descriptor.dimension = wgpu::TextureViewDimension::e2D;
-  depth_texture_view_descriptor.format = depth_texture_format;
-  return depth_texture.CreateView(&depth_texture_view_descriptor);
-}
-
-wgpu::RenderPipeline App::SetupRenderPipeline(wgpu::Device device, const char* shader_code) {
-  wgpu::ShaderModuleWGSLDescriptor wgsl_descriptor{};
-  wgsl_descriptor.code = shader_code;
-
-  wgpu::ShaderModuleDescriptor shader_module_descriptor{.nextInChain = &wgsl_descriptor};
-  wgpu::ShaderModule shader_module = device.CreateShaderModule(&shader_module_descriptor);
-
-  wgpu::ColorTargetState color_target_state{.format = wgpu::TextureFormat::BGRA8Unorm};
-
-  wgpu::FragmentState fragmentState{.module = shader_module,
-                                    .entryPoint = "fragmentMain",
-                                    .targetCount = 1,
-                                    .targets = &color_target_state};
-
-  wgpu::DepthStencilState depth_stencil_state;
-  depth_stencil_state.depthCompare = wgpu::CompareFunction::Less;
-  depth_stencil_state.depthWriteEnabled = true;
-  depth_stencil_state.format = wgpu::TextureFormat::Depth24Plus;
-  depth_stencil_state.stencilReadMask = 0;
-  depth_stencil_state.stencilWriteMask = 0;
-
-  wgpu::RenderPipelineDescriptor descriptor{
-      .vertex = {.module = shader_module, .entryPoint = "vertexMain"}, .fragment = &fragmentState};
-
-  descriptor.depthStencil = &depth_stencil_state;
-  descriptor.multisample.count = 1;
-  descriptor.multisample.mask = ~0u;
-  descriptor.multisample.alphaToCoverageEnabled = false;
-
-  return device.CreateRenderPipeline(&descriptor);
 }
 
 void App::MainLoop() {

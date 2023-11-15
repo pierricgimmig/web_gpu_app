@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 20)           # Enable C++20 standard
 
 add_executable(app 
 	"main.cpp" 
+	"renderer.h"
+	"renderer.cpp"
 	"web_gpu_app.h" 
 	"web_gpu_app.cpp"
 )
