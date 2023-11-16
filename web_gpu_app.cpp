@@ -64,10 +64,12 @@ void App::MainLoop() {
 #else
   while (!glfwWindowShouldClose(window_)) {
     glfwPollEvents();
-    renderer_->Render({});
+    Render();
   }
 #endif
 }
+
+void App::Render() { renderer_->Render({}); }
 
 GLFWwindow* App::SetupGlfwWindow(const char* title, void* user_pointer) {
   if (!glfwInit()) {
