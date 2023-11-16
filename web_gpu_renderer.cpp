@@ -48,15 +48,15 @@ WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
   shader_code_ = GetShader("shader.wgsl");
   glfwGetFramebufferSize(window_, &width_, &height_);
   instance_ = wgpu::CreateInstance();
-  device_ = GetDevice(instance_);
-  surface_ = GetSurface(instance_, window);
-  swap_chain_ = GetSwapChain(surface_, device_, width_, height_);
-  depth_texture_ = GetDepthTexture(device_, depth_texture_format_, width_, height_);
-  depth_texture_view_ = GetDepthTextureView(depth_texture_, depth_texture_format_);
-  render_pipeline_ = GetRenderPipeline(device_, shader_code_.c_str());
+  device_ = CreateDevice(instance_);
+  surface_ = CreateSurface(instance_, window);
+  swap_chain_ = CreateSwapChain(surface_, device_, width_, height_);
+  depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
+  depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
+  render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
 }
 
-wgpu::Device WebGpuRenderer::GetDevice(const wgpu::Instance& instance) {
+wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
   wgpu::Device result;
   instance.RequestAdapter(
       nullptr,
@@ -81,7 +81,7 @@ wgpu::Device WebGpuRenderer::GetDevice(const wgpu::Instance& instance) {
   return result;
 }
 
-wgpu::Surface WebGpuRenderer::GetSurface(const wgpu::Instance& instance, GLFWwindow* window) {
+wgpu::Surface WebGpuRenderer::CreateSurface(const wgpu::Instance& instance, GLFWwindow* window) {
   wgpu::Surface surface;
 #if defined(__EMSCRIPTEN__)
   wgpu::SurfaceDescriptorFromCanvasHTMLSelector canvasDesc{};
@@ -94,8 +94,8 @@ wgpu::Surface WebGpuRenderer::GetSurface(const wgpu::Instance& instance, GLFWwin
   return surface;
 }
 
-wgpu::SwapChain WebGpuRenderer::GetSwapChain(wgpu::Surface surface, wgpu::Device device,
-                                             uint32_t width, uint32_t height) {
+wgpu::SwapChain WebGpuRenderer::CreateSwapChain(wgpu::Surface surface, wgpu::Device device,
+                                                uint32_t width, uint32_t height) {
   wgpu::SwapChainDescriptor descriptor{.usage = wgpu::TextureUsage::RenderAttachment,
                                        .format = wgpu::TextureFormat::BGRA8Unorm,
                                        .width = width,
@@ -104,9 +104,9 @@ wgpu::SwapChain WebGpuRenderer::GetSwapChain(wgpu::Surface surface, wgpu::Device
   return device.CreateSwapChain(surface, &descriptor);
 }
 
-wgpu::Texture WebGpuRenderer::GetDepthTexture(wgpu::Device device,
-                                              wgpu::TextureFormat depth_texture_format,
-                                              uint32_t width, uint32_t height) {
+wgpu::Texture WebGpuRenderer::CreateDepthTexture(wgpu::Device device,
+                                                 wgpu::TextureFormat depth_texture_format,
+                                                 uint32_t width, uint32_t height) {
   wgpu::TextureDescriptor depthTextureDesc;
   depthTextureDesc.dimension = wgpu::TextureDimension::e2D;
   depthTextureDesc.format = depth_texture_format;
@@ -119,8 +119,8 @@ wgpu::Texture WebGpuRenderer::GetDepthTexture(wgpu::Device device,
   return device.CreateTexture(&depthTextureDesc);
 }
 
-wgpu::TextureView WebGpuRenderer::GetDepthTextureView(wgpu::Texture depth_texture,
-                                                      wgpu::TextureFormat depth_texture_format) {
+wgpu::TextureView WebGpuRenderer::CreateDepthTextureView(wgpu::Texture depth_texture,
+                                                         wgpu::TextureFormat depth_texture_format) {
   wgpu::TextureViewDescriptor depth_texture_view_descriptor;
   depth_texture_view_descriptor.aspect = wgpu::TextureAspect::DepthOnly;
   depth_texture_view_descriptor.baseArrayLayer = 0;
@@ -132,8 +132,8 @@ wgpu::TextureView WebGpuRenderer::GetDepthTextureView(wgpu::Texture depth_textur
   return depth_texture.CreateView(&depth_texture_view_descriptor);
 }
 
-wgpu::RenderPipeline WebGpuRenderer::GetRenderPipeline(wgpu::Device device,
-                                                       const char* shader_code) {
+wgpu::RenderPipeline WebGpuRenderer::CreateRenderPipeline(wgpu::Device device,
+                                                          const char* shader_code) {
   wgpu::ShaderModuleWGSLDescriptor wgsl_descriptor{};
   wgsl_descriptor.code = shader_code;
 
@@ -218,8 +218,8 @@ void WebGpuRenderer::RenderUi(wgpu::RenderPassEncoder render_pass) {
 void WebGpuRenderer::OnResize(int width, int height) {
   width_ = width;
   height_ = height;
-  swap_chain_ = GetSwapChain(surface_, device_, width_, height_);
-  depth_texture_ = GetDepthTexture(device_, depth_texture_format_, width_, height_);
-  depth_texture_view_ = GetDepthTextureView(depth_texture_, depth_texture_format_);
+  swap_chain_ = CreateSwapChain(surface_, device_, width_, height_);
+  depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
+  depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
 }
 }  // namespace web_gpu_app
