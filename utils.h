@@ -1,6 +1,22 @@
 #pragma once
-#include "imgui.h"
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
+
+#include "imgui.h"
+
+inline std::string ReadFileToString(const std::string& file_name) {
+  std::ifstream file(file_name);
+  if (!file) {
+    std::cerr << "Cannot open file: " << file_name << std::endl;
+    return "";
+  }
+
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return buffer.str();
+}
 
 #define TRACE_VAR(x) std::cout << #x << ": " << x << std::endl;
 
@@ -144,4 +160,4 @@ inline void SetUiThemeDarker() {
   style.TabRounding = 4;
 }
 
-}  // web_gpu_app
+}  // namespace web_gpu_app
