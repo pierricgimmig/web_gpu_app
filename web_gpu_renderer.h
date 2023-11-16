@@ -43,6 +43,7 @@ class WebGpuRenderer : public Renderer {
   GLFWwindow* window_ = nullptr;
   int width_ = 0;
   int height_ = 0;
+  std::string shader_code_;
 };
 
 }  // namespace web_gpu_app

@@ -3,10 +3,12 @@
 #include <GLFW/glfw3.h>
 #include <webgpu/webgpu_cpp.h>
 
+#include <filesystem>
 #include <iostream>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_wgpu.h"
+#include "utils.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
@@ -30,19 +32,20 @@ void OnDeviceLost(WGPUDeviceLostReason reason, char const* message, void* userda
   std::cout << "Device: " << userdata << std::endl;
 }
 
-const char simple_shader_code[] = R"(
-    @vertex fn vertexMain(@builtin(vertex_index) i : u32) ->
-      @builtin(position) vec4f {
-        const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
-        return vec4f(pos[i], 0, 1);
+std::string GetShader(const std::string& shader_name) {
+  static std::vector<std::filesystem::path> paths = {"shaders", "../shaders", "../../shaders"};
+  for (std::filesystem::path path : paths) {
+    std::filesystem::path shader_path = path / shader_name;
+    if (std::filesystem::exists(shader_path)) {
+      return ReadFileToString(shader_path.string());
     }
-    @fragment fn fragmentMain() -> @location(0) vec4f {
-        return vec4f(0.1, 0.4, 0, 1);
-    }
-)";
+  }
+  return "";
+}
 }  // namespace
 
 WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
+  shader_code_ = GetShader("shader.wgsl");
   glfwGetFramebufferSize(window_, &width_, &height_);
   instance_ = wgpu::CreateInstance();
   device_ = GetDevice(instance_);
@@ -50,7 +53,7 @@ WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
   swap_chain_ = GetSwapChain(surface_, device_, width_, height_);
   depth_texture_ = GetDepthTexture(device_, depth_texture_format_, width_, height_);
   depth_texture_view_ = GetDepthTextureView(depth_texture_, depth_texture_format_);
-  render_pipeline_ = GetRenderPipeline(device_, simple_shader_code);
+  render_pipeline_ = GetRenderPipeline(device_, shader_code_.c_str());
 }
 
 wgpu::Device WebGpuRenderer::GetDevice(const wgpu::Instance& instance) {
@@ -140,7 +143,7 @@ wgpu::RenderPipeline WebGpuRenderer::GetRenderPipeline(wgpu::Device device,
   wgpu::ColorTargetState color_target_state{.format = wgpu::TextureFormat::BGRA8Unorm};
 
   wgpu::FragmentState fragmentState{.module = shader_module,
-                                    .entryPoint = "fragmentMain",
+                                    .entryPoint = "fragment_main",
                                     .targetCount = 1,
                                     .targets = &color_target_state};
 
@@ -152,7 +155,7 @@ wgpu::RenderPipeline WebGpuRenderer::GetRenderPipeline(wgpu::Device device,
   depth_stencil_state.stencilWriteMask = 0;
 
   wgpu::RenderPipelineDescriptor descriptor{
-      .vertex = {.module = shader_module, .entryPoint = "vertexMain"}, .fragment = &fragmentState};
+      .vertex = {.module = shader_module, .entryPoint = "vertex_main"}, .fragment = &fragmentState};
 
   descriptor.depthStencil = &depth_stencil_state;
   descriptor.multisample.count = 1;

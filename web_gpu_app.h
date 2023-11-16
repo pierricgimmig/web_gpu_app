@@ -20,7 +20,6 @@ class App {
  protected:
   GLFWwindow* SetupGlfwWindow(const char* title, void* user_pointer);
   void SetupUi();
-
   void MainLoop();
 
   virtual std::string GetAppName() { return "web_gpu_app"; };
