@@ -26,7 +26,7 @@ struct Line {
 
 struct Tripod {
   Mat4 transform;
-  float size = 0;
+  float size = 1.f;
 };
 
 struct Cube {
@@ -44,7 +44,7 @@ struct Sphere {
 struct Mesh {
   Mat4 transform;
   tinyobj::mesh_t mesh;
-  float scale = 0;
+  float scale = 1.f;
 };
 
 struct Renderables {
