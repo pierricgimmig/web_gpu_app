@@ -1,12 +1,9 @@
 #pragma once
 
-#include <webgpu/webgpu_cpp.h>
-
+#include <memory>
 #include <string>
 
-#include "imgui.h"
-
-struct GLFWwindow;
+#include "web_gpu_renderer.h"
 
 namespace web_gpu_app {
 
@@ -15,31 +12,21 @@ class App {
   App();
   virtual ~App();
 
- protected:
-  void SetupUi();
-
-  void MainLoop();
-  void Render();
-  virtual void RenderUi(wgpu::RenderPassEncoder render_pass);
-
-  virtual std::string GetAppName() { return "web_gpu_app"; };
-
   void OnResize(int width, int height);
   void OnMouseMove(double xpos, double ypos);
   void OnMouseButton(int button, int action, int mods);
   void OnScroll(double xoffset, double yoffset);
 
-  wgpu::Instance instance_;
-  wgpu::Device device_;
-  wgpu::Surface surface_;
-  wgpu::SwapChain swap_chain_;
-  wgpu::RenderPipeline render_pipeline_;
-  wgpu::TextureFormat depth_texture_format_ = wgpu::TextureFormat::Depth24Plus;
-  wgpu::Texture depth_texture_ = nullptr;
-  wgpu::TextureView depth_texture_view_ = nullptr;
+ protected:
+  GLFWwindow* SetupGlfwWindow(const char* title, void* user_pointer);
+  void SetupUi();
+
+  void MainLoop();
+
+  virtual std::string GetAppName() { return "web_gpu_app"; };
+
   GLFWwindow* window_ = nullptr;
-  int width_ = 0;
-  int height_ = 0;
+  std::unique_ptr<WebGpuRenderer> renderer_;
 };
 
 }  // namespace web_gpu_app

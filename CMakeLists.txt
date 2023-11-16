@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD 20)           # Enable C++20 standard
 add_executable(app 
 	"main.cpp" 
 	"renderer.h"
-	"renderer.cpp"
-	"web_gpu_app.h" 
+  "utils.h"
 	"web_gpu_app.cpp"
+  "web_gpu_app.h"
+  "web_gpu_renderer.cpp"
+  "web_gpu_renderer.h"
 )
 
 if(WIN32)
@@ -47,6 +49,11 @@ else()
   target_link_libraries(app PRIVATE webgpu_cpp webgpu_dawn webgpu_glfw)
 endif()
 
-target_include_directories(app PRIVATE third_party/glm)
-target_include_directories(app PRIVATE third_party/imgui)
+target_include_directories(app PRIVATE 
+  third_party/glm
+  third_party/imgui
+  third_party/stb
+  third_party/tinyobj
+)
+
 target_link_libraries(app PRIVATE imgui)

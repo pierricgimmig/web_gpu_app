@@ -1,27 +1,64 @@
 #pragma once
 
-#include <webgpu/webgpu_cpp.h>
+#include <stb/stb_image.h>
+#include <tinyobj/tiny_obj_loader.h>
 
-struct GLFWwindow;
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/quaternion_float.hpp>
+#include <glm/ext/scalar_constants.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <span>
 
-namespace web_gpu_app {
+using Vec3 = glm::vec3;
+using Vec4 = glm::vec4;
+using Mat4 = glm::mat4;
+using Quat = glm::quat;
+using Color = glm::vec4;
 
-struct Renderer {
-  Renderer() = default;
-  virtual ~Renderer() = default;
-  virtual GLFWwindow* GetGlfwWindow(const char* title, void* user_pointer);
-  virtual wgpu::Device GetDevice(const wgpu::Instance& instance);
-  virtual wgpu::Surface GetSurface(const wgpu::Instance& instance, GLFWwindow* window);
-  virtual wgpu::SwapChain GetSwapChain(wgpu::Surface surface, wgpu::Device device, uint32_t width,
-                                        uint32_t height);
-  virtual wgpu::Texture GetDepthTexture(wgpu::Device device,
-                                         wgpu::TextureFormat depth_texture_format, uint32_t width,
-                                         uint32_t height);
-  virtual wgpu::TextureView GetDepthTextureView(wgpu::Texture depth_texture,
-                                                 wgpu::TextureFormat depth_texture_format);
-  virtual wgpu::RenderPipeline GetRenderPipeline(wgpu::Device device, const char* shader_code);
-}
-
+struct Line {
+  Vec3 from;
+  Vec3 to;
+  Color color;
 };
 
-}  // namespace web_gpu_app
+struct Tripod {
+  Mat4 transform;
+  float size = 0;
+};
+
+struct Cube {
+  Mat4 transform;
+  float size;
+  Color color;
+};
+
+struct Sphere {
+  Mat4 transform;
+  float radius;
+  Color color;
+};
+
+struct Mesh {
+  Mat4 transform;
+  tinyobj::mesh_t mesh;
+  float scale = 0;
+};
+
+struct Renderables {
+  std::span<Line> lines;
+  std::span<Tripod> tripods;
+  std::span<Cube> cubes;
+  std::span<Sphere> spheres;
+  std::span<Mesh> meshes;
+};
+
+class Renderer {
+ public:
+  Renderer() = default;
+  virtual ~Renderer(){};
+  virtual void Render(const Renderables& renderables) = 0;
+  virtual void OnResize(int width, int height) = 0;
+};
