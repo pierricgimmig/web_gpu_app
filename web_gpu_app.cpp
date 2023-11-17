@@ -25,37 +25,24 @@ web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
   return reinterpret_cast<web_gpu_app::App*>(glfwGetWindowUserPointer(window));
 }
 
-void OnGlfwResize(GLFWwindow* window, int width, int height) {
-  AppFromWindow(window)->OnResize(width, height);
-}
-
-void OnGlfwSetCursorPos(GLFWwindow* window, double xpos, double ypos) {
-  AppFromWindow(window)->OnMouseMove(xpos, ypos);
-}
-
-void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods) {
-  AppFromWindow(window)->OnMouseButton(button, action, mods);
-}
-
-void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
-  AppFromWindow(window)->OnScroll(x_offset, y_offset);
-}
-
 }  // namespace
 
 namespace web_gpu_app {
 
 App::App() {
-  window_ = SetupGlfwWindow(GetAppName().c_str(), this);
+  window_ = CreateGlfwWindow(GetAppName(), this);
   renderer_ = std::make_unique<WebGpuRenderer>(window_);
   // Imgui
   SetupUi();
-  MainLoop();
 }
 
 App::~App() {
   ImGui_ImplGlfw_Shutdown();
   ImGui_ImplWGPU_Shutdown();
+}
+
+void App::Run() {
+  MainLoop();
 }
 
 void App::MainLoop() {
@@ -71,7 +58,7 @@ void App::MainLoop() {
 
 void App::Render() { renderer_->Render({}); }
 
-GLFWwindow* App::SetupGlfwWindow(const char* title, void* user_pointer) {
+GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   if (!glfwInit()) {
     return nullptr;
   }
@@ -112,6 +99,22 @@ void App::OnMouseButton(int button, int action, int mods) {
 void App::OnScroll(double xoffset, double yoffset) {
   TRACE_VAR(xoffset);
   TRACE_VAR(yoffset);
+}
+
+void App::OnGlfwResize(GLFWwindow* window, int width, int height) {
+  AppFromWindow(window)->OnResize(width, height);
+}
+
+void App::OnGlfwSetCursorPos(GLFWwindow* window, double xpos, double ypos) {
+  AppFromWindow(window)->OnMouseMove(xpos, ypos);
+}
+
+void App::OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods) {
+  AppFromWindow(window)->OnMouseButton(button, action, mods);
+}
+
+void App::OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
+  AppFromWindow(window)->OnScroll(x_offset, y_offset);
 }
 
 }  // namespace web_gpu_app

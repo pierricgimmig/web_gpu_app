@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include "web_gpu_renderer.h"
 
@@ -11,18 +10,24 @@ class App {
  public:
   App();
   virtual ~App();
-  void Render();
-  void OnResize(int width, int height);
-  void OnMouseMove(double xpos, double ypos);
-  void OnMouseButton(int button, int action, int mods);
-  void OnScroll(double xoffset, double yoffset);
+  void Run();
+  virtual const char* GetAppName() { return "web_gpu_app"; }
 
  protected:
-  GLFWwindow* SetupGlfwWindow(const char* title, void* user_pointer);
   void SetupUi();
   void MainLoop();
 
-  virtual std::string GetAppName() { return "web_gpu_app"; };
+  virtual void Render();
+  virtual void OnResize(int width, int height);
+  virtual void OnMouseMove(double xpos, double ypos);
+  virtual void OnMouseButton(int button, int action, int mods);
+  virtual void OnScroll(double xoffset, double yoffset);
+
+  static GLFWwindow* CreateGlfwWindow(const char* title, void* user_pointer);
+  static void OnGlfwResize(GLFWwindow* window, int width, int height);
+  static void OnGlfwSetCursorPos(GLFWwindow* window, double xpos, double ypos);
+  static void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods);
+  static void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset);
 
   GLFWwindow* window_ = nullptr;
   std::unique_ptr<WebGpuRenderer> renderer_;
