@@ -2,8 +2,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-
 #include "utils.h"
 
 #if defined(__EMSCRIPTEN__)
@@ -58,7 +56,7 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   static constexpr uint32_t kInitialHeight = 400;
   GLFWwindow* window = glfwCreateWindow(kInitialWidth, kInitialHeight, title,
                                         /*monitor*/ nullptr, /*share*/ nullptr);
-                                        
+
   glfwSetWindowUserPointer(window, user_pointer);
   glfwSetFramebufferSizeCallback(window, &OnGlfwResize);
   glfwSetCursorPosCallback(window, &OnGlfwSetCursorPos);
@@ -68,17 +66,9 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
 }
 
 void App::OnResize(int width, int height) { renderer_->OnResize(width, height); }
-
 void App::OnMouseMove(double xpos, double ypos) {}
-void App::OnMouseButton(int button, int action, int mods) {
-  TRACE_VAR(button);
-  TRACE_VAR(action);
-  TRACE_VAR(mods);
-}
-void App::OnScroll(double xoffset, double yoffset) {
-  TRACE_VAR(xoffset);
-  TRACE_VAR(yoffset);
-}
+void App::OnMouseButton(int button, int action, int mods) {}
+void App::OnScroll(double xoffset, double yoffset) {}
 
 void App::OnGlfwResize(GLFWwindow* window, int width, int height) {
   AppFromWindow(window)->OnResize(width, height);
