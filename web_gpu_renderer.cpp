@@ -54,6 +54,13 @@ WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
   depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
   depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
   render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
+  SetupUi();
+}
+
+WebGpuRenderer::~WebGpuRenderer() {
+  ImGui_ImplWGPU_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 }
 
 wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
@@ -201,6 +208,16 @@ void WebGpuRenderer::Render(const Renderables&) {
   device_.Tick();
 
   swap_chain_.Present();
+}
+
+void WebGpuRenderer::SetupUi() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui::GetIO();
+  ImGui_ImplGlfw_InitForOther(window_, true);
+  ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm,
+                      WGPUTextureFormat_Depth24Plus);
+  SetUiThemeDark();
 }
 
 void WebGpuRenderer::RenderUi(wgpu::RenderPassEncoder render_pass) {

@@ -11,12 +11,10 @@ namespace web_gpu_app {
 class WebGpuRenderer : public Renderer {
  public:
   WebGpuRenderer(GLFWwindow* window);
-  virtual ~WebGpuRenderer() {}
+  virtual ~WebGpuRenderer();
 
   void Render(const Renderables& renderables) override;
   void OnResize(int width, int height) override;
-
-  WGPUDevice GetDevice() const { return device_.Get(); }
 
  protected:
   virtual wgpu::Device CreateDevice(const wgpu::Instance& instance);
@@ -30,6 +28,7 @@ class WebGpuRenderer : public Renderer {
                                                    wgpu::TextureFormat depth_texture_format);
   virtual wgpu::RenderPipeline CreateRenderPipeline(wgpu::Device device, const char* shader_code);
 
+  virtual void SetupUi();
   virtual void RenderUi(wgpu::RenderPassEncoder render_pass);
 
   wgpu::Instance instance_;

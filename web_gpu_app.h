@@ -10,11 +10,10 @@ class App {
  public:
   App();
   virtual ~App();
-  void Run();
-  virtual const char* GetAppName() { return "web_gpu_app"; }
+  virtual void Run();
+  virtual const char* GetTitle() { return "web_gpu_app"; }
 
  protected:
-  void SetupUi();
   void MainLoop();
 
   virtual void Render();

@@ -4,9 +4,6 @@
 
 #include <iostream>
 
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_wgpu.h"
-#include "glm/glm.hpp"
 #include "utils.h"
 
 #if defined(__EMSCRIPTEN__)
@@ -30,20 +27,13 @@ web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
 namespace web_gpu_app {
 
 App::App() {
-  window_ = CreateGlfwWindow(GetAppName(), this);
+  window_ = CreateGlfwWindow(GetTitle(), this);
   renderer_ = std::make_unique<WebGpuRenderer>(window_);
-  // Imgui
-  SetupUi();
 }
 
-App::~App() {
-  ImGui_ImplGlfw_Shutdown();
-  ImGui_ImplWGPU_Shutdown();
-}
+App::~App() {}
 
-void App::Run() {
-  MainLoop();
-}
+void App::Run() { MainLoop(); }
 
 void App::MainLoop() {
 #if defined(__EMSCRIPTEN__)
@@ -68,24 +58,13 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   static constexpr uint32_t kInitialHeight = 400;
   GLFWwindow* window = glfwCreateWindow(kInitialWidth, kInitialHeight, title,
                                         /*monitor*/ nullptr, /*share*/ nullptr);
-
-  // Setup callbacks.
+                                        
   glfwSetWindowUserPointer(window, user_pointer);
   glfwSetFramebufferSizeCallback(window, &OnGlfwResize);
   glfwSetCursorPosCallback(window, &OnGlfwSetCursorPos);
   glfwSetMouseButtonCallback(window, &OnGlfwSetMouseButton);
   glfwSetScrollCallback(window, OnGlfwScroll);
   return window;
-}
-
-void App::SetupUi() {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui::GetIO();
-  ImGui_ImplGlfw_InitForOther(window_, true);
-  ImGui_ImplWGPU_Init(renderer_->GetDevice(), 3, WGPUTextureFormat_BGRA8Unorm,
-                      WGPUTextureFormat_Depth24Plus);
-  SetUiThemeDark();
 }
 
 void App::OnResize(int width, int height) { renderer_->OnResize(width, height); }
