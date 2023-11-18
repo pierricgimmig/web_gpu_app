@@ -213,7 +213,7 @@ void WebGpuRenderer::Render(const Renderables&) {
 void WebGpuRenderer::SetupUi() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGui::GetIO();
+  ImGui::GetIO().IniFilename = nullptr;
   ImGui_ImplGlfw_InitForOther(window_, true);
   ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm,
                       WGPUTextureFormat_Depth24Plus);
