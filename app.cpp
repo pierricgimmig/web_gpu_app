@@ -1,8 +1,9 @@
-#include "web_gpu_app.h"
+#include "app.h"
 
 #include <GLFW/glfw3.h>
 
 #include "utils.h"
+#include "web_gpu_renderer.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>

@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.13) # CMake version check
 project(app)                         # Create project "app"
 set(CMAKE_CXX_STANDARD 20)           # Enable C++20 standard
 
-add_executable(app 
-	"main.cpp" 
-	"renderer.h"
+add_executable(app
+  "app.cpp"
+  "app.h"
+  "main.cpp" 
+  "renderer.h"
+  "ui.h"
+  "ui.cpp"
   "utils.h"
-	"web_gpu_app.cpp"
-  "web_gpu_app.h"
   "web_gpu_renderer.cpp"
   "web_gpu_renderer.h"
 )

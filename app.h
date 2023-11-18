@@ -2,7 +2,9 @@
 
 #include <memory>
 
-#include "web_gpu_renderer.h"
+#include "renderer.h"
+
+struct GLFWwindow;
 
 namespace web_gpu_app {
 
@@ -29,7 +31,7 @@ class App {
   static void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset);
 
   GLFWwindow* window_ = nullptr;
-  std::unique_ptr<WebGpuRenderer> renderer_;
+  std::unique_ptr<Renderer> renderer_;
 };
 
 }  // namespace web_gpu_app

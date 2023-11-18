@@ -2,7 +2,10 @@
 
 #include <webgpu/webgpu_cpp.h>
 
+#include <memory>
+
 #include "renderer.h"
+#include "ui.h"
 
 struct GLFWwindow;
 
@@ -28,8 +31,7 @@ class WebGpuRenderer : public Renderer {
                                                    wgpu::TextureFormat depth_texture_format);
   virtual wgpu::RenderPipeline CreateRenderPipeline(wgpu::Device device, const char* shader_code);
 
-  virtual void SetupUi();
-  virtual void RenderUi(wgpu::RenderPassEncoder render_pass);
+  virtual void RenderUi();
 
   wgpu::Instance instance_;
   wgpu::Device device_;
@@ -43,6 +45,8 @@ class WebGpuRenderer : public Renderer {
   int width_ = 0;
   int height_ = 0;
   std::string shader_code_;
+
+  std::unique_ptr<Ui> ui_;
 };
 
 }  // namespace web_gpu_app

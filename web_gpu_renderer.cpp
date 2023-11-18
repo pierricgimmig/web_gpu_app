@@ -6,8 +6,6 @@
 #include <filesystem>
 #include <iostream>
 
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_wgpu.h"
 #include "utils.h"
 
 #if defined(__EMSCRIPTEN__)
@@ -54,14 +52,10 @@ WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
   depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
   depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
   render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
-  SetupUi();
+  ui_ = std::make_unique<Ui>(window_, device_, [this]() { RenderUi(); });
 }
 
-WebGpuRenderer::~WebGpuRenderer() {
-  ImGui_ImplWGPU_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
-}
+WebGpuRenderer::~WebGpuRenderer() {}
 
 wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
   wgpu::Device result;
@@ -201,7 +195,7 @@ void WebGpuRenderer::Render(const Renderables&) {
   wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
   pass.SetPipeline(render_pipeline_);
   pass.Draw(3);
-  RenderUi(pass);
+  ui_->Render(pass);
   pass.End();
   wgpu::CommandBuffer commands = encoder.Finish();
   device_.GetQueue().Submit(1, &commands);
@@ -210,27 +204,7 @@ void WebGpuRenderer::Render(const Renderables&) {
   swap_chain_.Present();
 }
 
-void WebGpuRenderer::SetupUi() {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui::GetIO().IniFilename = nullptr;
-  ImGui_ImplGlfw_InitForOther(window_, true);
-  ImGui_ImplWGPU_Init(device_.Get(), 3, WGPUTextureFormat_BGRA8Unorm,
-                      WGPUTextureFormat_Depth24Plus);
-  SetUiThemeDark();
-}
-
-void WebGpuRenderer::RenderUi(wgpu::RenderPassEncoder render_pass) {
-  ImGui_ImplWGPU_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-
-  ImGui::ShowDemoWindow();
-
-  ImGui::EndFrame();
-  ImGui::Render();
-  ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), render_pass.Get());
-}
+void WebGpuRenderer::RenderUi() { ImGui::ShowDemoWindow(); }
 
 void WebGpuRenderer::OnResize(int width, int height) {
   width_ = width;
