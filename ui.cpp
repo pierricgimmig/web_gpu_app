@@ -6,8 +6,7 @@
 
 namespace web_gpu_app {
 
-Ui::Ui(GLFWwindow* window, wgpu::Device device, std::function<void()> callback)
-    : callback_(callback) {
+Ui::Ui(GLFWwindow* window, wgpu::Device device) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGui::GetIO().IniFilename = nullptr;
@@ -23,13 +22,13 @@ Ui::~Ui() {
   ImGui::DestroyContext();
 }
 
-void Ui::Render(wgpu::RenderPassEncoder render_pass) {
+void Ui::BeginUiFrame() {
   ImGui_ImplWGPU_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
+}
 
-  callback_();
-
+void Ui::EndUiFrame(wgpu::RenderPassEncoder render_pass) {
   ImGui::EndFrame();
   ImGui::Render();
   ImGui_ImplWGPU_RenderDrawData(ImGui::GetDrawData(), render_pass.Get());

@@ -11,10 +11,11 @@ namespace web_gpu_app {
 
 class Ui {
  public:
-  Ui(GLFWwindow* window, wgpu::Device device, std::function<void()> callback);
+  Ui(GLFWwindow* window, wgpu::Device device);
   ~Ui();
 
-  void Render(wgpu::RenderPassEncoder render_pass);
+  void BeginUiFrame();
+  void EndUiFrame(wgpu::RenderPassEncoder render_pass);
 
   void SetThemeDark();
   void SetThemeDarker();

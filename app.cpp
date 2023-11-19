@@ -34,6 +34,8 @@ App::~App() {}
 
 void App::Run() { MainLoop(); }
 
+void App::Update() {}
+
 void App::MainLoop() {
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(reinterpret_cast<void*>(this), EmscriptenMainLoop, 0, false);

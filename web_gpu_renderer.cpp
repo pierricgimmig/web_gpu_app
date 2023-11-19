@@ -53,7 +53,7 @@ WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
   depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
   depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
   render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
-  ui_ = std::make_unique<Ui>(window_, device_, [this]() { RenderUi(); });
+  ui_ = std::make_unique<Ui>(window_, device_);
 }
 
 WebGpuRenderer::~WebGpuRenderer() {}
@@ -168,6 +168,9 @@ wgpu::RenderPipeline WebGpuRenderer::CreateRenderPipeline(wgpu::Device device,
 }
 
 void WebGpuRenderer::Render(const Renderables&) {
+  ui_->BeginUiFrame();
+  RenderUi();
+
   wgpu::RenderPassColorAttachment attachment{.view = swap_chain_.GetCurrentTextureView(),
                                              .loadOp = wgpu::LoadOp::Clear,
                                              .storeOp = wgpu::StoreOp::Store};
@@ -196,7 +199,8 @@ void WebGpuRenderer::Render(const Renderables&) {
   wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&renderpass);
   pass.SetPipeline(render_pipeline_);
   pass.Draw(3);
-  ui_->Render(pass);
+
+  ui_->EndUiFrame(pass);
   pass.End();
   wgpu::CommandBuffer commands = encoder.Finish();
   device_.GetQueue().Submit(1, &commands);

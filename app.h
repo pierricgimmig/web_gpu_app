@@ -14,6 +14,7 @@ class App {
   virtual ~App();
   virtual void Run();
   virtual const char* GetTitle() { return "web_gpu_app"; }
+  virtual void Update();
 
  protected:
   void MainLoop();
