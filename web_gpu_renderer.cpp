@@ -1,6 +1,7 @@
 #include "web_gpu_renderer.h"
 
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 #include <webgpu/webgpu_cpp.h>
 
 #include <filesystem>

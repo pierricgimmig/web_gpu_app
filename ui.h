@@ -16,6 +16,9 @@ class Ui {
 
   void Render(wgpu::RenderPassEncoder render_pass);
 
+  void SetThemeDark();
+  void SetThemeDarker();
+
  private:
   std::function<void()> callback_;
 };
