@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
 #include "utils.h"
 #include "web_gpu_renderer.h"
 
@@ -32,11 +33,12 @@ App::App() {
 
 App::~App() {}
 
-void App::Run() { MainLoop(); }
+Renderables App::Update() {
+  ImGui::ShowDemoWindow();
+  return {};
+}
 
-void App::Update() {}
-
-void App::MainLoop() {
+void App::Run() {
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(reinterpret_cast<void*>(this), EmscriptenMainLoop, 0, false);
 #else
@@ -47,7 +49,11 @@ void App::MainLoop() {
 #endif
 }
 
-void App::Render() { renderer_->Render({}); }
+void App::Render() {
+  renderer_->BeginFrame();
+  Renderables renderables = Update();
+  renderer_->EndFrame(renderables);
+}
 
 GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   if (!glfwInit()) {

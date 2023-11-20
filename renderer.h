@@ -59,6 +59,7 @@ class Renderer {
  public:
   Renderer() = default;
   virtual ~Renderer(){};
-  virtual void Render(const Renderables& renderables) = 0;
+  virtual void BeginFrame() = 0;
+  virtual void EndFrame(const Renderables& renderables) = 0;
   virtual void OnResize(int width, int height) = 0;
 };

@@ -16,7 +16,8 @@ class WebGpuRenderer : public Renderer {
   WebGpuRenderer(GLFWwindow* window);
   virtual ~WebGpuRenderer();
 
-  void Render(const Renderables& renderables) override;
+  void BeginFrame() override;
+  void EndFrame(const Renderables& renderables) override;
   void OnResize(int width, int height) override;
 
  protected:
@@ -30,8 +31,6 @@ class WebGpuRenderer : public Renderer {
   virtual wgpu::TextureView CreateDepthTextureView(wgpu::Texture depth_texture,
                                                    wgpu::TextureFormat depth_texture_format);
   virtual wgpu::RenderPipeline CreateRenderPipeline(wgpu::Device device, const char* shader_code);
-
-  virtual void RenderUi();
 
   wgpu::Instance instance_;
   wgpu::Device device_;

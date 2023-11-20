@@ -14,11 +14,9 @@ class App {
   virtual ~App();
   virtual void Run();
   virtual const char* GetTitle() { return "web_gpu_app"; }
-  virtual void Update();
+  virtual Renderables Update();
 
  protected:
-  void MainLoop();
-
   virtual void Render();
   virtual void OnResize(int width, int height);
   virtual void OnMouseMove(double xpos, double ypos);

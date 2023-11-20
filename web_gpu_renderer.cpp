@@ -167,10 +167,9 @@ wgpu::RenderPipeline WebGpuRenderer::CreateRenderPipeline(wgpu::Device device,
   return device.CreateRenderPipeline(&descriptor);
 }
 
-void WebGpuRenderer::Render(const Renderables&) {
-  ui_->BeginUiFrame();
-  RenderUi();
+void WebGpuRenderer::BeginFrame() { ui_->BeginUiFrame(); }
 
+void WebGpuRenderer::EndFrame(const Renderables&) {
   wgpu::RenderPassColorAttachment attachment{.view = swap_chain_.GetCurrentTextureView(),
                                              .loadOp = wgpu::LoadOp::Clear,
                                              .storeOp = wgpu::StoreOp::Store};
@@ -208,8 +207,6 @@ void WebGpuRenderer::Render(const Renderables&) {
 
   swap_chain_.Present();
 }
-
-void WebGpuRenderer::RenderUi() { ImGui::ShowDemoWindow(); }
 
 void WebGpuRenderer::OnResize(int width, int height) {
   width_ = width;
