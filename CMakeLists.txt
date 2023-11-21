@@ -7,6 +7,8 @@ add_executable(app
   "app.h"
   "main.cpp" 
   "renderer.h"
+  "triangle_app.cpp"
+  "triangle_app.h"
   "ui.h"
   "ui.cpp"
   "utils.h"

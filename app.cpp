@@ -26,17 +26,9 @@ web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
 
 namespace web_gpu_app {
 
-App::App() {
-  window_ = CreateGlfwWindow(GetTitle(), this);
-  renderer_ = std::make_unique<WebGpuRenderer>(window_);
-}
+App::App() { window_ = CreateGlfwWindow("web_gpu_app", this); }
 
 App::~App() {}
-
-Renderables App::Update() {
-  ImGui::ShowDemoWindow();
-  return {};
-}
 
 void App::Run() {
 #if defined(__EMSCRIPTEN__)
@@ -50,9 +42,9 @@ void App::Run() {
 }
 
 void App::Render() {
-  renderer_->BeginFrame();
+  GetRenderer()->BeginFrame();
   Renderables renderables = Update();
-  renderer_->EndFrame(renderables);
+  GetRenderer()->EndFrame(renderables);
 }
 
 GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
@@ -74,7 +66,7 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   return window;
 }
 
-void App::OnResize(int width, int height) { renderer_->OnResize(width, height); }
+void App::OnResize(int width, int height) { GetRenderer()->OnResize(width, height); }
 void App::OnMouseMove(double xpos, double ypos) {}
 void App::OnMouseButton(int button, int action, int mods) {}
 void App::OnScroll(double xoffset, double yoffset) {}

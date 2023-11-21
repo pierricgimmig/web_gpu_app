@@ -13,8 +13,10 @@ class App {
   App();
   virtual ~App();
   virtual void Run();
-  virtual const char* GetTitle() { return "web_gpu_app"; }
-  virtual Renderables Update();
+
+  virtual const char* GetTitle() = 0;
+  virtual Renderer* GetRenderer() = 0;
+  virtual Renderables Update() = 0;
 
  protected:
   virtual void Render();
@@ -30,7 +32,6 @@ class App {
   static void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset);
 
   GLFWwindow* window_ = nullptr;
-  std::unique_ptr<Renderer> renderer_;
 };
 
 }  // namespace web_gpu_app

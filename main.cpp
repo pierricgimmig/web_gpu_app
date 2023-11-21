@@ -1,7 +1,7 @@
-#include "app.h"
+#include "triangle_app.h"
 
 static void Main() { 
-    web_gpu_app::App app; 
+    web_gpu_app::TriangleApp app; 
     app.Run();
 }
 
