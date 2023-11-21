@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "app.h"
-#include "web_gpu_renderer.h"
+#include "web_gpu_app/app.h"
+#include "web_gpu_app/web_gpu_renderer.h"
 
 struct GLFWwindow;
 

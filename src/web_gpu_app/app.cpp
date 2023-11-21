@@ -1,10 +1,10 @@
-#include "app.h"
+#include "web_gpu_app/app.h"
 
 #include <GLFW/glfw3.h>
 
 #include "imgui.h"
-#include "utils.h"
-#include "web_gpu_renderer.h"
+#include "web_gpu_app/utils.h"
+#include "web_gpu_app/web_gpu_renderer.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
@@ -42,6 +42,7 @@ void App::Run() {
 }
 
 void App::Render() {
+  glfwSetWindowTitle(window_, GetTitle());
   GetRenderer()->BeginFrame();
   Renderables renderables = Update();
   GetRenderer()->EndFrame(renderables);

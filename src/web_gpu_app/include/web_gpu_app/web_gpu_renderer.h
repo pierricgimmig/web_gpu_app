@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "renderer.h"
-#include "ui.h"
+#include "web_gpu_app/renderer.h"
+#include "web_gpu_app/ui.h"
 
 struct GLFWwindow;
 

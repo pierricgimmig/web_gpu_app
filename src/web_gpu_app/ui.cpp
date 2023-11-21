@@ -1,8 +1,8 @@
-#include "ui.h"
+#include "web_gpu_app/ui.h"
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_wgpu.h"
-#include "utils.h"
+#include "web_gpu_app/utils.h"
 
 namespace web_gpu_app {
 

@@ -1,63 +1,29 @@
-cmake_minimum_required(VERSION 3.13) # CMake version check
-project(app)                         # Create project "app"
-set(CMAKE_CXX_STANDARD 20)           # Enable C++20 standard
+cmake_minimum_required(VERSION 3.13)
+project(app)
+set(CMAKE_CXX_STANDARD 20)
 
-add_executable(app
-  "app.cpp"
-  "app.h"
-  "main.cpp" 
-  "renderer.h"
-  "triangle_app.cpp"
-  "triangle_app.h"
-  "ui.h"
-  "ui.cpp"
-  "utils.h"
-  "web_gpu_renderer.cpp"
-  "web_gpu_renderer.h"
-)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-if(WIN32)
-# Don't launch a console.
-set_target_properties(app PROPERTIES WIN32_EXECUTABLE ON)
-endif()
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
-# Imgui
-add_library(imgui STATIC
-	third_party/imgui/backends/imgui_impl_wgpu.h
-	third_party/imgui/backends/imgui_impl_wgpu.cpp
-	third_party/imgui/backends/imgui_impl_glfw.h
-	third_party/imgui/backends/imgui_impl_glfw.cpp
-	third_party/imgui/misc/cpp/imgui_stdlib.h
-	third_party/imgui/misc/cpp/imgui_stdlib.cpp
-	third_party/imgui/imconfig.h
-	third_party/imgui/imgui.h
-	third_party/imgui/imgui.cpp
-	third_party/imgui/imgui_demo.cpp
-	third_party/imgui/imgui_draw.cpp
-	third_party/imgui/imgui_internal.h
-	third_party/imgui/imgui_tables.cpp
-	third_party/imgui/imgui_widgets.cpp
-	third_party/imgui/imstb_rectpack.h
-	third_party/imgui/imstb_textedit.h
-	third_party/imgui/imstb_truetype.h
-)
-target_include_directories(imgui PUBLIC third_party/imgui)
-target_link_libraries(imgui PUBLIC webgpu_cpp webgpu_glfw)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-if(EMSCRIPTEN)
-  set_target_properties(app PROPERTIES SUFFIX ".html")
-  target_link_options(app PRIVATE "-sUSE_WEBGPU=1" "-sUSE_GLFW=3")
-else()
+add_subdirectory(src/web_gpu_app)
+add_subdirectory(src/examples/triangle_app)
+
+if(NOT EMSCRIPTEN)
   set(DAWN_FETCH_DEPENDENCIES ON)
-  add_subdirectory("third_party/dawn" EXCLUDE_FROM_ALL)
-  target_link_libraries(app PRIVATE webgpu_cpp webgpu_dawn webgpu_glfw)
+  add_subdirectory(third_party/dawn EXCLUDE_FROM_ALL)
 endif()
-
-target_include_directories(app PRIVATE 
-  third_party/glm
-  third_party/imgui
-  third_party/stb
-  third_party/tinyobj
-)
-
-target_link_libraries(app PRIVATE imgui)

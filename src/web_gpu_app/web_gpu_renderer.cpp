@@ -1,4 +1,4 @@
-#include "web_gpu_renderer.h"
+#include "web_gpu_app/web_gpu_renderer.h"
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <iostream>
 
-#include "utils.h"
+#include "web_gpu_app/utils.h"
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
@@ -31,20 +31,23 @@ void OnDeviceLost(WGPUDeviceLostReason reason, char const* message, void* userda
   std::cout << "Device: " << userdata << std::endl;
 }
 
-std::string GetShader(const std::string& shader_name) {
-  static std::vector<std::filesystem::path> paths = {"shaders", "../shaders", "../../shaders"};
-  for (std::filesystem::path path : paths) {
-    std::filesystem::path shader_path = path / shader_name;
-    if (std::filesystem::exists(shader_path)) {
-      return ReadFileToString(shader_path.string());
-    }
-  }
-  return "";
+const char* shader_code = R"(
+@vertex 
+fn vertex_main(@builtin(vertex_index) i : u32) ->
+    @builtin(position) vec4f {
+    const pos = array(vec2f(0, 1), vec2f(-1, -1), vec2f(1, -1));
+    return vec4f(pos[i], 0, 1);
 }
+@fragment 
+fn fragment_main() -> @location(0) vec4f {
+    return vec4f(0.1, 0.4, 0, 1);
+}
+)";
+
 }  // namespace
 
 WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
-  shader_code_ = GetShader("shader.wgsl");
+  shader_code_ = shader_code;
   glfwGetFramebufferSize(window_, &width_, &height_);
   instance_ = wgpu::CreateInstance();
   device_ = CreateDevice(instance_);
