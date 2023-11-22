@@ -8,6 +8,7 @@ add_executable(triangle_app
   triangle_app.h
 )
 
-target_link_libraries(triangle_app PRIVATE 
+target_link_libraries(triangle_app PRIVATE
+  imgui
   web_gpu_app
 )
