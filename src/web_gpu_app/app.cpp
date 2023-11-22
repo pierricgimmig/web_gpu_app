@@ -14,10 +14,6 @@
 
 namespace {
 
-#if defined(__EMSCRIPTEN__)
-void EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
-#endif
-
 web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
   return reinterpret_cast<web_gpu_app::App*>(glfwGetWindowUserPointer(window));
 }
@@ -32,7 +28,7 @@ App::~App() {}
 
 void App::Run() {
 #if defined(__EMSCRIPTEN__)
-  emscripten_set_main_loop_arg(reinterpret_cast<void*>(this), EmscriptenMainLoop, 0, false);
+  emscripten_set_main_loop_arg(EmscriptenMainLoop, reinterpret_cast<void*>(this), 0, false);
 #else
   while (!glfwWindowShouldClose(window_)) {
     glfwPollEvents();
@@ -87,5 +83,7 @@ void App::OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int m
 void App::OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
   AppFromWindow(window)->OnScroll(x_offset, y_offset);
 }
+
+void App::EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
 
 }  // namespace web_gpu_app

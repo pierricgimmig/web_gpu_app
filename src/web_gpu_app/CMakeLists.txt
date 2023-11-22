@@ -49,11 +49,6 @@ target_include_directories(imgui PUBLIC
   ${CMAKE_SOURCE_DIR}/third_party/imgui
 )
 
-target_link_libraries(imgui PUBLIC 
-  webgpu_cpp
-  webgpu_glfw
-)
-
 if(WIN32)
 # Don't launch a console.
 set_target_properties(web_gpu_app PROPERTIES WIN32_EXECUTABLE ON)
@@ -72,6 +67,7 @@ if(EMSCRIPTEN)
 else()
   set(DAWN_FETCH_DEPENDENCIES ON)
   target_link_libraries(web_gpu_app PUBLIC webgpu_cpp webgpu_dawn webgpu_glfw)
+  target_link_libraries(imgui PUBLIC webgpu_cpp webgpu_glfw)
 endif()
 
 target_link_libraries(web_gpu_app PRIVATE imgui)

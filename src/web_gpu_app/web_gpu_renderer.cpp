@@ -77,8 +77,11 @@ wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
                void* userdata) {
               wgpu::Device* device = reinterpret_cast<wgpu::Device*>(userdata);
               *device = wgpu::Device::Acquire(c_device);
+
+#if !defined(__EMSCRIPTEN__)
               device->SetUncapturedErrorCallback(OnDeviceError, nullptr);
               device->SetDeviceLostCallback(OnDeviceLost, device->Get());
+#endif
             },
             userdata);
       },
@@ -206,7 +209,10 @@ void WebGpuRenderer::EndFrame(const Renderables&) {
   pass.End();
   wgpu::CommandBuffer commands = encoder.Finish();
   device_.GetQueue().Submit(1, &commands);
+
+#if !defined(__EMSCRIPTEN__)
   device_.Tick();
+#endif
 
   swap_chain_.Present();
 }

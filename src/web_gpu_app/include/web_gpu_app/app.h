@@ -31,6 +31,8 @@ class App {
   static void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods);
   static void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset);
 
+  static void EmscriptenMainLoop(void* app);
+
   GLFWwindow* window_ = nullptr;
 };
 
