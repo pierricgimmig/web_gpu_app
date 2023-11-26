@@ -39,9 +39,10 @@ void App::Run() {
 
 void App::Render() {
   glfwSetWindowTitle(window_, GetTitle());
-  GetRenderer()->BeginFrame();
+  Renderer* renderer = GetRenderer();
+  renderer->BeginFrame();
   Renderables renderables = Update();
-  GetRenderer()->EndFrame(renderables);
+  renderer->EndFrame(renderables);
 }
 
 GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {

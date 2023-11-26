@@ -11,7 +11,7 @@ namespace web_gpu_app {
 
 class TriangleApp : public App {
  public:
-  TriangleApp();
+  explicit TriangleApp(wgpu::Instance instance, wgpu::Device device);
   virtual ~TriangleApp();
 
   const char* GetTitle() override { return "Triangle App"; }
