@@ -32,7 +32,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug . -B build && cmake --build build -j4
 
 ```sh
 # Build the app with Emscripten.
-emcmake cmake -B build-web && cmake --build build-web -j4
+emcmake cmake -DCMAKE_BUILD_TYPE=Debug -B build-web && cmake --build build-web -j4
 
 # Run a server.
 npx http-server
@@ -40,7 +40,7 @@ npx http-server
 
 ```sh
 # Open the web app.
-open http://127.0.0.1:8080/build-web/app.html
+open http://127.0.0.1:8080/build-web/bin/triangle_app.html
 ```
 
 ## Ubuntu specific steps for web app
@@ -48,7 +48,7 @@ open http://127.0.0.1:8080/build-web/app.html
 - Build this project with `emcmake cmake -B build-web && cmake --build build-web -j4`
 - In a terminal, at the root of this project, run npx http-server (you might have to install npm)
 - Launch WebGpu-enabled unstable Google Chrome: `google-chrome-unstable --enable-unsafe-webgpu --use-vulkan=true --test-type --enable-features=Vulkan`
-- Go to http://127.0.0.1:8080/build-web/app.html in the unstable browser
+- Go to http://127.0.0.1:8080/build-web/bin/triangle_app.html in the unstable browser
 
 ### Debugging WebAssembly
 

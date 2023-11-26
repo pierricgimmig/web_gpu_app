@@ -4,7 +4,9 @@
 
 namespace web_gpu_app {
 
-TriangleApp::TriangleApp() { renderer_ = std::make_unique<WebGpuRenderer>(window_); }
+TriangleApp::TriangleApp(wgpu::Instance instance, wgpu::Device device) { 
+  renderer_ = std::make_unique<WebGpuRenderer>(instance, device, window_); 
+}
 
 TriangleApp::~TriangleApp() {}
 

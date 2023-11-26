@@ -11,9 +11,11 @@ struct GLFWwindow;
 
 namespace web_gpu_app {
 
+void GetDevice(wgpu::Instance instance, void (*callback)(wgpu::Device));
+
 class WebGpuRenderer : public Renderer {
  public:
-  WebGpuRenderer(GLFWwindow* window);
+  WebGpuRenderer(wgpu::Instance instance, wgpu::Device device, GLFWwindow* window);
   virtual ~WebGpuRenderer();
 
   void BeginFrame() override;
@@ -21,7 +23,6 @@ class WebGpuRenderer : public Renderer {
   void OnResize(int width, int height) override;
 
  protected:
-  virtual wgpu::Device CreateDevice(const wgpu::Instance& instance);
   virtual wgpu::Surface CreateSurface(const wgpu::Instance& instance, GLFWwindow* window);
   virtual wgpu::SwapChain CreateSwapChain(wgpu::Surface surface, wgpu::Device device,
                                           uint32_t width, uint32_t height);

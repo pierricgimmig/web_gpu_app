@@ -46,23 +46,7 @@ fn fragment_main() -> @location(0) vec4f {
 
 }  // namespace
 
-WebGpuRenderer::WebGpuRenderer(GLFWwindow* window) : window_(window) {
-  shader_code_ = shader_code;
-  glfwGetFramebufferSize(window_, &width_, &height_);
-  instance_ = wgpu::CreateInstance();
-  device_ = CreateDevice(instance_);
-  surface_ = CreateSurface(instance_, window);
-  swap_chain_ = CreateSwapChain(surface_, device_, width_, height_);
-  depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
-  depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
-  render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
-  ui_ = std::make_unique<Ui>(window_, device_);
-}
-
-WebGpuRenderer::~WebGpuRenderer() {}
-
-wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
-  wgpu::Device result;
+void GetDevice(wgpu::Instance instance, void (*callback)(wgpu::Device)) {
   instance.RequestAdapter(
       nullptr,
       [](WGPURequestAdapterStatus status, WGPUAdapter c_adapter, const char* message,
@@ -75,19 +59,32 @@ wgpu::Device WebGpuRenderer::CreateDevice(const wgpu::Instance& instance) {
             nullptr,
             [](WGPURequestDeviceStatus status, WGPUDevice c_device, const char* message,
                void* userdata) {
-              wgpu::Device* device = reinterpret_cast<wgpu::Device*>(userdata);
-              *device = wgpu::Device::Acquire(c_device);
-
-#if !defined(__EMSCRIPTEN__)
-              device->SetUncapturedErrorCallback(OnDeviceError, nullptr);
-              device->SetDeviceLostCallback(OnDeviceLost, device->Get());
-#endif
+              wgpu::Device device = wgpu::Device::Acquire(c_device);
+              reinterpret_cast<void (*)(wgpu::Device)>(userdata)(device);
             },
             userdata);
       },
-      reinterpret_cast<void*>(&result));
-  return result;
+      reinterpret_cast<void*>(callback));
 }
+
+WebGpuRenderer::WebGpuRenderer(wgpu::Instance instance, wgpu::Device device, GLFWwindow* window)
+    : instance_(instance), device_(device), window_(window) {
+#if !defined(__EMSCRIPTEN__)
+  device_.SetUncapturedErrorCallback(OnDeviceError, nullptr);
+  device_.SetDeviceLostCallback(OnDeviceLost, device.Get());
+#endif
+
+  shader_code_ = shader_code;
+  glfwGetFramebufferSize(window_, &width_, &height_);
+  surface_ = CreateSurface(instance_, window);
+  swap_chain_ = CreateSwapChain(surface_, device_, width_, height_);
+  depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
+  depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
+  render_pipeline_ = CreateRenderPipeline(device_, shader_code_.c_str());
+  ui_ = std::make_unique<Ui>(window_, device_);
+}
+
+WebGpuRenderer::~WebGpuRenderer() {}
 
 wgpu::Surface WebGpuRenderer::CreateSurface(const wgpu::Instance& instance, GLFWwindow* window) {
   wgpu::Surface surface;
@@ -212,9 +209,8 @@ void WebGpuRenderer::EndFrame(const Renderables&) {
 
 #if !defined(__EMSCRIPTEN__)
   device_.Tick();
-#endif
-
   swap_chain_.Present();
+#endif
 }
 
 void WebGpuRenderer::OnResize(int width, int height) {
