@@ -63,6 +63,7 @@ target_include_directories(web_gpu_app PUBLIC
 
 if(EMSCRIPTEN)
   set_target_properties(web_gpu_app PROPERTIES SUFFIX ".html")
+  target_link_options(web_gpu_app PUBLIC --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/shell.html)
   target_link_options(web_gpu_app PRIVATE "-sUSE_WEBGPU=1" "-sUSE_GLFW=3")
 else()
   set(DAWN_FETCH_DEPENDENCIES ON)
