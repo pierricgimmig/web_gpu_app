@@ -2,8 +2,8 @@
 
 Minimalist WebGpu native and web app skeleton with Imgui support.
 
-Based off https://github.com/beaufortfrancois/webgpu-cross-platform-app.
-
+## Live demo
+https://pierricgimmig.github.io/web_gpu_app/
 
 ## Setup
 
@@ -54,4 +54,3 @@ open http://127.0.0.1:8080/build-web/bin/triangle_app.html
 
 When building the app, compile it with DWARF debug information included thanks to `emcmake cmake -DCMAKE_BUILD_TYPE=Debug -B build-web`. And make sure to install the [C/C++ DevTools Support (DWARF) Chrome extension](https://goo.gle/wasm-debugging-extension) to enable WebAssembly debugging in DevTools.
 
-<img width="1112" alt="image" src="https://github.com/beaufortfrancois/webgpu-cross-platform-app/assets/634478/e82f2494-6b1a-4534-b9e3-0c04caeca96d">
