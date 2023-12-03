@@ -51,6 +51,7 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
   static constexpr uint32_t kInitialWidth = 600;
   static constexpr uint32_t kInitialHeight = 400;
   GLFWwindow* window = glfwCreateWindow(kInitialWidth, kInitialHeight, title,
@@ -58,6 +59,7 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, void* user_pointer) {
 
   glfwSetWindowUserPointer(window, user_pointer);
   glfwSetFramebufferSizeCallback(window, &OnGlfwResize);
+  glfwSetWindowSizeCallback(window, &OnGlfwResize);
   glfwSetCursorPosCallback(window, &OnGlfwSetCursorPos);
   glfwSetMouseButtonCallback(window, &OnGlfwSetMouseButton);
   glfwSetScrollCallback(window, OnGlfwScroll);
