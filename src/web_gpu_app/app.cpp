@@ -8,6 +8,7 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
 #else
 #include <webgpu/webgpu_glfw.h>
 #endif
@@ -29,6 +30,8 @@ App::~App() {}
 void App::Run() {
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(EmscriptenMainLoop, reinterpret_cast<void*>(this), 0, false);
+  emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, glfwGetCurrentContext(), false,
+                                 EmscriptenCanvasSizeChanged);
 #else
   while (!glfwWindowShouldClose(window_)) {
     glfwPollEvents();
@@ -87,6 +90,18 @@ void App::OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset) {
   AppFromWindow(window)->OnScroll(x_offset, y_offset);
 }
 
+#if defined(__EMSCRIPTEN__)
 void App::EmscriptenMainLoop(void* app) { reinterpret_cast<App*>(app)->Render(); }
+
+int App::EmscriptenCanvasSizeChanged(int event_type, const EmscriptenUiEvent* ui_event,
+                                       void* user_data) {
+  double canvas_width = 0;
+  double canvas_height = 0;
+  emscripten_get_element_css_size("#canvas-container", &canvas_width, &canvas_height);
+  glfwSetWindowSize(glfwGetCurrentContext(), static_cast<int>(canvas_width),
+                    static_cast<int>(canvas_height));
+  return true;
+}
+#endif // defined(__EMSCRIPTEN__)
 
 }  // namespace web_gpu_app

@@ -5,6 +5,7 @@
 #include "renderer.h"
 
 struct GLFWwindow;
+struct EmscriptenUiEvent;
 
 namespace web_gpu_app {
 
@@ -31,7 +32,11 @@ class App {
   static void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods);
   static void OnGlfwScroll(GLFWwindow* window, double x_offset, double y_offset);
 
+#if defined(__EMSCRIPTEN__)
   static void EmscriptenMainLoop(void* app);
+  static int EmscriptenCanvasSizeChanged(int event_type, const EmscriptenUiEvent* ui_event,
+                                         void* user_data);
+#endif
 
   GLFWwindow* window_ = nullptr;
 };
