@@ -18,6 +18,11 @@ using Mat4 = glm::mat4;
 using Quat = glm::quat;
 using Color = glm::vec4;
 
+struct CanvasSize {
+  int width = 0;
+  int height = 0;
+};
+
 struct Line {
   Vec3 from;
   Vec3 to;

@@ -1,57 +1,21 @@
-<!-- Note: this shell file is inspired by https://github.com/floooh/pacman.c/blob/main/sokol/shell.html -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
 <meta charset="UTF-8"/>
-<title>web_gpu_app</title>
+<title>pacman.c</title>
 <link rel="icon" type="image/png" href="favicon.png"/>
 <style type="text/css">
 body {
     margin: 0;
     background-color: black;
 }
-.game-title {
-    pointer-events: none;
-    position: absolute;
-    bottom: 10px;
-    margin-top: 0px;
-    padding-left: 10px;
-    color: white;
-    text-decoration: none;
-    z-index: 1;
-    text-align: left;
-    font-family: "Arial Black", Gadget, sans-serif;
-    font-size: 30px;
-}
-.game-menu-item {
-    pointer-events: auto;
-    font-size: 18px;
-    padding-left: 10px;
-    font-family: Arial, Helvetica, sans-serif;
-}
-.game-menu-link {
-    text-decoration: none;
-    color: white;
-}
-.game {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    margin: 0px;
-    border: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
 </style>
 </head>
 <body style="background:black">
-  <!-- <div class="game-title">
+  <div class="game-title">
     <span class="game-menu-item"><a class="game-menu-link" href="https://github.com/pierricgimmig/web_gpu_app" target="_blank">source code</a></span>
-  </div> -->
-  <div id="canvas-container">
-    <canvas class=game id="canvas" oncontextmenu="event.preventDefault()"></canvas>
   </div>
+  <canvas class="game" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
   <script type="text/javascript">
     var Module = {
         preRun: [],
