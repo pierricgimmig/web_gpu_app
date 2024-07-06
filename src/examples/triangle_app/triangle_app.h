@@ -14,8 +14,8 @@ class TriangleApp : public App {
   explicit TriangleApp(wgpu::Instance instance, wgpu::Device device);
   virtual ~TriangleApp();
 
-  const char* GetTitle() override { return "Triangle App"; }
-  Renderer* GetRenderer() override { return renderer_.get(); }
+  const char* GetTitle() override;
+  Renderer* GetRenderer() override;
   Renderables Update() override;
 
  protected:

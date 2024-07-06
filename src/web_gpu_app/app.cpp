@@ -71,7 +71,10 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, int width, int height, void
   return window;
 }
 
-void App::OnResize(int width, int height) { GetRenderer()->OnResize(width, height); }
+void App::OnResize(int width, int height) { 
+    GetRenderer()->OnResize(width, height); 
+    Render();
+}
 void App::OnMouseMove(double xpos, double ypos) {}
 void App::OnMouseButton(int button, int action, int mods) {}
 void App::OnScroll(double xoffset, double yoffset) {}
