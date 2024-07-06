@@ -25,7 +25,7 @@ namespace web_gpu_app {
 
 App::App() {
   CanvasSize canvas_size = GetInitialCanvasSize();
-  window_ = CreateGlfwWindow("web_gpu_app", canvas_size.width, canvas_size.height, this);
+  window_ = CreateGlfwWindow("", canvas_size.width, canvas_size.height, this);
 }
 
 App::~App() {}
@@ -113,7 +113,7 @@ CanvasSize App::GetInitialCanvasSize() const { return GetCanvasSize(); }
 
 #else
 
-CanvasSize App::GetInitialCanvasSize() {
+CanvasSize App::GetInitialCanvasSize() const {
   static constexpr int kInitialWidth = 600;
   static constexpr int kInitialHeight = 400;
   return {kInitialWidth, kInitialHeight};
