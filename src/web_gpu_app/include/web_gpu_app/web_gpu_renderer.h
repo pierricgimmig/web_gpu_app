@@ -15,14 +15,18 @@ void GetDevice(wgpu::Instance instance, void (*callback)(wgpu::Device));
 
 class WebGpuRenderer : public Renderer {
  public:
+  static void Create(GLFWwindow* window,
+                     std::function<void(std::unique_ptr<WebGpuRenderer>)> callback);
+
   WebGpuRenderer(wgpu::Instance instance, wgpu::Device device, GLFWwindow* window);
   virtual ~WebGpuRenderer();
 
   void BeginFrame() override;
   void EndFrame(const Renderables& renderables) override;
   void OnResize(int width, int height) override;
+  void* GetWindow() const override;
 
- protected:
+ protected:  
   virtual wgpu::Surface CreateSurface(const wgpu::Instance& instance, GLFWwindow* window);
   virtual wgpu::SwapChain CreateSwapChain(wgpu::Surface surface, wgpu::Device device,
                                           uint32_t width, uint32_t height);
@@ -45,8 +49,11 @@ class WebGpuRenderer : public Renderer {
   int width_ = 0;
   int height_ = 0;
   std::string shader_code_;
-
   std::unique_ptr<Ui> ui_;
+
+  static GLFWwindow* g_window_;
+  static std::function<void(std::unique_ptr<WebGpuRenderer>)> g_create_callback_;
+  static wgpu::Instance g_instance_;
 };
 
 }  // namespace web_gpu_app

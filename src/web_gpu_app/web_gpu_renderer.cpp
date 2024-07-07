@@ -19,6 +19,10 @@ struct GLFWwindow;
 
 namespace web_gpu_app {
 
+GLFWwindow* WebGpuRenderer::g_window_;
+std::function<void(std::unique_ptr<WebGpuRenderer>)> WebGpuRenderer::g_create_callback_;
+wgpu::Instance WebGpuRenderer::g_instance_;
+
 namespace {
 void OnDeviceError(WGPUErrorType type, const char* message, void* userdata) {
   std::cout << "Dawn error: " << message << std::endl;
@@ -65,6 +69,16 @@ void GetDevice(wgpu::Instance instance, void (*callback)(wgpu::Device)) {
             userdata);
       },
       reinterpret_cast<void*>(callback));
+}
+
+void WebGpuRenderer::Create(GLFWwindow* window,
+                            std::function<void(std::unique_ptr<WebGpuRenderer>)> callback) {
+  g_window_ = window;
+  g_create_callback_ = std::move(callback);
+  g_instance_ = wgpu::CreateInstance();
+  web_gpu_app::GetDevice(g_instance_, [](wgpu::Device device) {
+    g_create_callback_(std::make_unique<WebGpuRenderer>(g_instance_, device, g_window_));
+  });
 }
 
 WebGpuRenderer::WebGpuRenderer(wgpu::Instance instance, wgpu::Device device, GLFWwindow* window)
@@ -220,4 +234,7 @@ void WebGpuRenderer::OnResize(int width, int height) {
   depth_texture_ = CreateDepthTexture(device_, depth_texture_format_, width_, height_);
   depth_texture_view_ = CreateDepthTextureView(depth_texture_, depth_texture_format_);
 }
+
+void* WebGpuRenderer::GetWindow() const { return window_; }
+
 }  // namespace web_gpu_app

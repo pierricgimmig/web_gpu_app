@@ -19,15 +19,17 @@ class App {
   virtual Renderer* GetRenderer() = 0;
   virtual Renderables Update() = 0;
 
+  static CanvasSize GetInitialCanvasSize();
+  static GLFWwindow* CreateGlfwWindow(const char* title, CanvasSize size, void* user_pointer);
+  static GLFWwindow* CreateGlfwWindow();
+
  protected:
   virtual void Render();
   virtual void OnResize(int width, int height);
   virtual void OnMouseMove(double xpos, double ypos);
   virtual void OnMouseButton(int button, int action, int mods);
   virtual void OnScroll(double xoffset, double yoffset);
-  virtual CanvasSize GetInitialCanvasSize() const;
 
-  static GLFWwindow* CreateGlfwWindow(const char* title, int width, int height, void* user_pointer);
   static void OnGlfwResize(GLFWwindow* window, int width, int height);
   static void OnGlfwSetCursorPos(GLFWwindow* window, double xpos, double ypos);
   static void OnGlfwSetMouseButton(GLFWwindow* window, int button, int action, int mods);

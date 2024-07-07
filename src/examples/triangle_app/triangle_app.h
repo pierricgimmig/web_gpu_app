@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "web_gpu_app/app.h"
-#include "web_gpu_app/web_gpu_renderer.h"
+#include "web_gpu_app/renderer.h"
 
 struct GLFWwindow;
 
@@ -11,7 +11,7 @@ namespace web_gpu_app {
 
 class TriangleApp : public App {
  public:
-  explicit TriangleApp(wgpu::Instance instance, wgpu::Device device);
+  explicit TriangleApp(std::unique_ptr<Renderer> renderer);
   virtual ~TriangleApp();
 
   const char* GetTitle() override;
@@ -19,7 +19,7 @@ class TriangleApp : public App {
   Renderables Update() override;
 
  protected:
-  std::unique_ptr<WebGpuRenderer> renderer_;
+  std::unique_ptr<Renderer> renderer_;
 };
 
 }  // namespace web_gpu_app

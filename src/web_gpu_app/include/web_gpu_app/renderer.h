@@ -67,4 +67,5 @@ class Renderer {
   virtual void BeginFrame() = 0;
   virtual void EndFrame(const Renderables& renderables) = 0;
   virtual void OnResize(int width, int height) = 0;
+  virtual void* GetWindow() const = 0;
 };

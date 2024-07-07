@@ -23,14 +23,14 @@ web_gpu_app::App* AppFromWindow(GLFWwindow* window) {
 
 namespace web_gpu_app {
 
-App::App() {
-  CanvasSize canvas_size = GetInitialCanvasSize();
-  window_ = CreateGlfwWindow("", canvas_size.width, canvas_size.height, this);
-}
+App::App() {}
 
 App::~App() {}
 
 void App::Run() {
+  window_ = reinterpret_cast<GLFWwindow*>(GetRenderer()->GetWindow());
+  glfwSetWindowUserPointer(window_, this);
+
 #if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(EmscriptenMainLoop, reinterpret_cast<void*>(this), 0, false);
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, glfwGetCurrentContext(), false,
@@ -51,7 +51,7 @@ void App::Render() {
   renderer->EndFrame(renderables);
 }
 
-GLFWwindow* App::CreateGlfwWindow(const char* title, int width, int height, void* user_pointer) {
+GLFWwindow* App::CreateGlfwWindow(const char* title, CanvasSize canvas_size, void* user_pointer) {
   if (!glfwInit()) {
     return nullptr;
   }
@@ -59,8 +59,8 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, int width, int height, void
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-  GLFWwindow* window =
-      glfwCreateWindow(width, height, title, /*monitor*/ nullptr, /*share*/ nullptr);
+  GLFWwindow* window = glfwCreateWindow(canvas_size.width, canvas_size.height, title,
+                                        /*monitor*/ nullptr, /*share*/ nullptr);
 
   glfwSetWindowUserPointer(window, user_pointer);
   glfwSetFramebufferSizeCallback(window, &OnGlfwResize);
@@ -71,10 +71,15 @@ GLFWwindow* App::CreateGlfwWindow(const char* title, int width, int height, void
   return window;
 }
 
-void App::OnResize(int width, int height) { 
-    GetRenderer()->OnResize(width, height); 
-    Render();
+GLFWwindow* App::CreateGlfwWindow() {
+  return CreateGlfwWindow("", GetInitialCanvasSize(), nullptr);
 }
+
+void App::OnResize(int width, int height) {
+  GetRenderer()->OnResize(width, height);
+  Render();
+}
+
 void App::OnMouseMove(double xpos, double ypos) {}
 void App::OnMouseButton(int button, int action, int mods) {}
 void App::OnScroll(double xoffset, double yoffset) {}
@@ -112,13 +117,13 @@ CanvasSize App::GetCanvasSize() {
   return {static_cast<int>(canvas_width), static_cast<int>(canvas_height)};
 }
 
-CanvasSize App::GetInitialCanvasSize() const { return GetCanvasSize(); }
+CanvasSize App::GetInitialCanvasSize() { return GetCanvasSize(); }
 
 #else
 
-CanvasSize App::GetInitialCanvasSize() const {
-  static constexpr int kInitialWidth = 600;
-  static constexpr int kInitialHeight = 400;
+CanvasSize App::GetInitialCanvasSize() {
+  static constexpr int kInitialWidth = 1200;
+  static constexpr int kInitialHeight = 800;
   return {kInitialWidth, kInitialHeight};
 }
 
